@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Transactions Summarizer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="head">
+        <h1>Summary Generator</h1>
+      </header>
+
+      <section class="card">
+        <label class="label">Upload Excel (.xlsx)</label>
+        <input id="file" type="file" accept=".xlsx" />
+        <div id="status" class="status" aria-live="polite"></div>
+      </section>
+
+      <section class="card">
+        <div class="row">
+          <div>
+            <label class="label">Analyst Comments</label>
+          </div>
+        </div>
+
+        <div class="rte">
+          <div class="rteToolbar" role="toolbar" aria-label="Analysis toolbar">
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="analysisEditor"
+              data-cmd="bold"
+            >
+              <b>B</b>
+            </button>
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="analysisEditor"
+              data-cmd="italic"
+            >
+              <i>I</i>
+            </button>
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="analysisEditor"
+              data-cmd="underline"
+            >
+              <u>U</u>
+            </button>
+            <span class="sep"></span>
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="analysisEditor"
+              data-cmd="insertUnorderedList"
+            >
+              • List
+            </button>
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="analysisEditor"
+              data-cmd="insertOrderedList"
+            >
+              1. List
+            </button>
+            <span class="sep"></span>
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="analysisEditor"
+              data-cmd="undo"
+            >
+              Undo
+            </button>
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="analysisEditor"
+              data-cmd="redo"
+            >
+              Redo
+            </button>
+            <span class="sep"></span>
+            <button
+              class="iconBtn danger"
+              type="button"
+              data-target="analysisEditor"
+              data-action="clearFormat"
+            >
+              Clear format
+            </button>
+          </div>
+
+          <div
+            id="analysisEditor"
+            class="rteEditor placeholder"
+            contenteditable="true"
+            spellcheck="true"
+            data-placeholder="Write your analysis points here..."
+          ></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="row">
+          <div>
+            <label class="label" id="summary">Summary </label>
+          </div>
+          <div class="rowBtns">
+            <button id="btnGenerate" class="btn primary" disabled>
+              Generate
+            </button>
+            <button id="btnCopy" class="btn" disabled>Copy</button>
+            <button id="btnClear" class="btn" disabled>Clear</button>
+          </div>
+        </div>
+
+        <div class="rte">
+          <div class="rteToolbar" role="toolbar" aria-label="Summary toolbar">
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="summaryEditor"
+              data-cmd="bold"
+            >
+              <b>B</b>
+            </button>
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="summaryEditor"
+              data-cmd="italic"
+            >
+              <i>I</i>
+            </button>
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="summaryEditor"
+              data-cmd="underline"
+            >
+              <u>U</u>
+            </button>
+            <span class="sep"></span>
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="summaryEditor"
+              data-cmd="insertUnorderedList"
+            >
+              • List
+            </button>
+            <button
+              class="iconBtn"
+              type="button"
+              data-target="summaryEditor"
+              data-cmd="insertOrderedList"
+            >
+              1. List
+            </button>
+            <span class="sep"></span>
+            <button
+              class="iconBtn danger"
+              type="button"
+              data-target="summaryEditor"
+              data-action="clearFormat"
+            >
+              Clear format
+            </button>
+          </div>
+
+          <div
+            id="summaryEditor"
+            class="rteEditor placeholder"
+            contenteditable="true"
+            spellcheck="true"
+            data-placeholder="Summary will appear here..."
+          ></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
