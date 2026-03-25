@@ -13,11 +13,42 @@
       </header>
 
       <section class="card">
-        <label class="label">Upload Excel (.xlsx)</label>
-        <input id="file" type="file" accept=".xlsx" />
+        <label class="label">Upload Excel (.xlsx)</label
+        ><input id="file" type="file" accept=".xlsx,.xlsm,.xlsb,.xls" />
+
         <div id="status" class="status" aria-live="polite"></div>
       </section>
+      <section class="card" id="focal-entity-form">
+        <div class="row">
+          <div>
+            <label class="label">Focal Entity Detail</label>
+          </div>
+        </div>
+        <input id="focalName" type="text" placeholder="Focal entity name" />
+        <input id="city" type="text" placeholder="City" />
+        <input id="state" type="text" placeholder="State" />
+        <input id="occupation" type="text" placeholder="Occupation" />
+      </section>
+      <section class="card" id="summary-options">
+        <div class="row">
+          <div>
+            <label class="label">Summary Options</label>
+          </div>
+        </div>
+        <div class="flex">
+          <label class="label" for="escalationType">Case type</label>
+          <select id="escalationType">
+            <option value="non_escalation" selected>Non escalation</option>
+            <option value="escalation">Escalation</option>
+          </select>
 
+          <label class="label" for="summaryMode">Summary mode</label>
+          <select id="summaryMode">
+            <option value="standard" selected>Standard</option>
+            <option value="simplified">Simplified</option>
+          </select>
+        </div>
+      </section>
       <section class="card">
         <div class="row">
           <div>

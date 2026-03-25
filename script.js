@@ -12,6 +12,14 @@
   const analysisEditor = el("analysisEditor");
   const summaryEditor = el("summaryEditor");
 
+  // NEW: detail inputs
+  const focalNameEl = el("focalName");
+  const cityEl = el("city");
+  const stateEl = el("state");
+  const occupationEl = el("occupation");
+  const escalationTypeEl = el("escalationType");
+  const summaryModeEl = el("summaryMode");
+
   let rows = [];
   let fileName = "";
 
@@ -26,6 +34,12 @@
       .toLowerCase()
       .replace(/\s+/g, " ")
       .replace(/[^a-z0-9 ]/g, "");
+  }
+
+  // NEW: find a sheet named "Transactions" (case/space tolerant)
+  function findSheetByName(wb, wantedName) {
+    const wanted = normalize(wantedName);
+    return (wb.SheetNames || []).find((n) => normalize(n) === wanted) || "";
   }
 
   function findCol(headers, candidates) {
@@ -81,7 +95,10 @@
     if (!Number.isFinite(n)) return "N/A";
     const sign = n < 0 ? "-" : "";
     const abs = Math.abs(n);
-    return `${sign}${abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${sign}${abs.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   }
 
   function fmtDate(d) {
@@ -90,6 +107,7 @@
       : "N/A";
   }
 
+  // FIXED: escape < and > correctly (prevents HTML injection)
   function esc(s) {
     return String(s ?? "")
       .replaceAll("&", "&amp;")
@@ -100,7 +118,6 @@
   }
 
   function sanitizeBasicHtml(html) {
-    // allow basic formatting + lists; remove everything else
     const allowed = new Set([
       "B",
       "STRONG",
@@ -124,12 +141,10 @@
         if (ch.nodeType === Node.ELEMENT_NODE) {
           const tag = ch.tagName.toUpperCase();
           if (!allowed.has(tag)) {
-            // unwrap: keep text/children
             const frag = document.createDocumentFragment();
             while (ch.firstChild) frag.appendChild(ch.firstChild);
             ch.replaceWith(frag);
           } else {
-            // strip attributes (keeps it simple/safe)
             for (const attr of Array.from(ch.attributes))
               ch.removeAttribute(attr.name);
             walk(ch);
@@ -147,13 +162,14 @@
   function buildSummaryHtml() {
     if (!rows.length) throw new Error("No transactions loaded.");
 
+    const focalName = (focalNameEl?.value || "").trim() || "N/A";
+    const city = (cityEl?.value || "").trim() || "N/A";
+    const state = (stateEl?.value || "").trim() || "N/A";
+    const occupation = (occupationEl?.value || "").trim() || "N/A";
+    const escalationType = escalationTypeEl?.value || "non_escalation";
+    const summaryMode = summaryModeEl?.value || "standard";
+
     const headers = Object.keys(rows[0] || {});
-    const dateCol = findCol(headers, [
-      "date",
-      "posting date",
-      "transaction date",
-      "txn date",
-    ]);
     const amtCol = findCol(headers, [
       "amount",
       "amt",
@@ -162,119 +178,53 @@
       "debit",
       "credit",
     ]);
-    const descCol = findCol(headers, [
-      "description",
-      "narration",
-      "details",
-      "merchant",
-      "payee",
-      "memo",
-    ]);
-    const catCol = findCol(headers, ["category", "type", "classification"]);
 
-    const parsed = rows.map((r) => ({
-      amount: amtCol ? parseAmount(r[amtCol]) : NaN,
-      date: dateCol ? parseDate(r[dateCol]) : null,
-      desc: descCol ? String(r[descCol] ?? "").trim() : "",
-      cat: catCol ? String(r[catCol] ?? "").trim() : "",
-    }));
+    if (!amtCol) throw new Error('Could not detect an "amount" column.');
 
-    const amountOk = parsed.filter((x) => Number.isFinite(x.amount));
-    const dateOk = parsed.filter(
-      (x) => x.date instanceof Date && !isNaN(x.date),
+    const amounts = rows
+      .map((r) => parseAmount(r[amtCol]))
+      .filter((n) => Number.isFinite(n));
+
+    const credit = amounts.filter((n) => n > 0).reduce((a, n) => a + n, 0);
+    const debit = Math.abs(
+      amounts.filter((n) => n < 0).reduce((a, n) => a + n, 0),
     );
+    const creditText = `$${fmtMoney(credit)}`;
+    const debitText = `$${fmtMoney(debit)}`;
 
-    const total = amountOk.reduce((a, x) => a + x.amount, 0);
-    const inflow = amountOk
-      .filter((x) => x.amount > 0)
-      .reduce((a, x) => a + x.amount, 0);
-    const outflow = amountOk
-      .filter((x) => x.amount < 0)
-      .reduce((a, x) => a + x.amount, 0);
-
-    const minDate = dateOk.length
-      ? new Date(Math.min(...dateOk.map((x) => x.date.getTime())))
-      : null;
-    const maxDate = dateOk.length
-      ? new Date(Math.max(...dateOk.map((x) => x.date.getTime())))
-      : null;
-
-    const byCat = new Map();
-    for (const x of amountOk) {
-      const k = x.cat || "(Uncategorized)";
-      byCat.set(k, (byCat.get(k) || 0) + x.amount);
+    let paragraph = "";
+    if (escalationType === "escalation" && summaryMode === "standard") {
+      paragraph = `Escalation summary: The focal entity is "${focalName}" located in ${city}, ${state}, with occupation "${occupation}". Total credits are ${creditText} and total debits are ${debitText}.`;
+    } else if (
+      escalationType === "escalation" &&
+      summaryMode === "simplified"
+    ) {
+      paragraph = `Escalation: "${focalName}" (${city}, ${state}; "${occupation}") — Credits ${creditText}; Debits ${debitText}.`;
+    } else if (
+      escalationType === "non_escalation" &&
+      summaryMode === "standard"
+    ) {
+      paragraph = `Summary: The focal entity is "${focalName}" located in ${city}, ${state}, with occupation "${occupation}". Total credits are ${creditText} and total debits are ${debitText}.`;
+    } else if (
+      escalationType === "non_escalation" &&
+      summaryMode === "simplified"
+    ) {
+      paragraph = `Non-escalation: "${focalName}" (${city}, ${state}; "${occupation}") — Credits ${creditText}; Debits ${debitText}.`;
+    } else {
+      alert("Please check all the input fields are selected correctly.");
+      paragraph = "";
     }
-    const topCats = [...byCat.entries()]
-      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-      .slice(0, 5);
-
-    const topTx = amountOk
-      .map((x) => ({ ...x, abs: Math.abs(x.amount) }))
-      .sort((a, b) => b.abs - a.abs)
-      .slice(0, 5);
-
-    const analysisHtml = sanitizeBasicHtml(analysisEditor.innerHTML);
-    const hasAnalysis = analysisEditor.textContent.trim().length > 0;
-
-    const warnings = [];
-    if (!amtCol) warnings.push("amount");
-    if (!dateCol) warnings.push("date");
 
     return `
-      <div>
-        <p><b>File:</b> ${esc(fileName || "Uploaded Excel")}</p>
-        <p><b>Transactions:</b> ${esc(rows.length)}</p>
-
-        <h3>Summary</h3>
-        <ul>
-          <li><b>Date range:</b> ${esc(minDate ? fmtDate(minDate) : "N/A")} to ${esc(maxDate ? fmtDate(maxDate) : "N/A")}</li>
-          <li><b>Net total:</b> ${esc(fmtMoney(total))}</li>
-          <li><b>Inflows:</b> ${esc(fmtMoney(inflow))}</li>
-          <li><b>Outflows:</b> ${esc(fmtMoney(outflow))}</li>
-        </ul>
-
-        <h3>Top categories (absolute net)</h3>
-        ${
-          topCats.length
-            ? `
-          <ol>
-            ${topCats.map(([k, v]) => `<li>${esc(k)}: <b>${esc(fmtMoney(v))}</b></li>`).join("")}
-          </ol>`
-            : `<p><i>N/A</i></p>`
-        }
-
-        <h3>Largest transactions (absolute amount)</h3>
-        ${
-          topTx.length
-            ? `
-          <ol>
-            ${topTx
-              .map((t) => {
-                const label = [
-                  t.desc || t.cat || "Transaction",
-                  t.date ? fmtDate(t.date) : "",
-                ]
-                  .filter(Boolean)
-                  .join(" — ");
-                return `<li>${esc(label)}: <b>${esc(fmtMoney(t.amount))}</b></li>`;
-              })
-              .join("")}
-          </ol>`
-            : `<p><i>N/A</i></p>`
-        }
-
-        <h3>My analysis points</h3>
-        ${hasAnalysis ? `<div>${analysisHtml}</div>` : `<p><i>No analysis added.</i></p>`}
-
-        ${warnings.length ? `<p><i>Note: Could not detect ${esc(warnings.join(" and "))} column(s) reliably.</i></p>` : ``}
-      </div>
-    `.trim();
+    <div>
+      <p>${esc(paragraph)}</p>
+    </div>
+  `.trim();
   }
 
   async function copySummary() {
     const html = summaryEditor.innerHTML;
     const text = summaryEditor.innerText;
-
     if (!text.trim()) return;
 
     try {
@@ -309,7 +259,6 @@
     setStatus("", "");
   }
 
-  // Toolbar commands
   document.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-cmd], [data-action]");
     if (!btn) return;
@@ -330,11 +279,11 @@
     }
   });
 
-  // Enable copy based on summary content
   summaryEditor.addEventListener("input", () => {
     btnCopy.disabled = !summaryEditor.textContent.trim();
   });
 
+  // UPDATED: load the "Transactions" sheet specifically
   fileEl.addEventListener("change", async () => {
     setStatus("", "");
     const f = fileEl.files?.[0];
@@ -348,19 +297,25 @@
       const buf = await f.arrayBuffer();
       const wb = XLSX.read(buf, { type: "array", cellDates: true });
 
-      const sheetName = wb.SheetNames?.[0];
-      if (!sheetName) throw new Error("No sheets found.");
+      const sheetName = findSheetByName(wb, "Transactions");
+      if (!sheetName) {
+        const available = (wb.SheetNames || []).join(", ") || "(none)";
+        throw new Error(
+          `Sheet "Transactions" not found. Available: ${available}`,
+        );
+      }
 
       const ws = wb.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
-      if (!json.length) throw new Error("No transaction rows found.");
+      if (!json.length)
+        throw new Error('No rows found in "Transactions" sheet.');
 
       rows = json;
 
       btnGenerate.disabled = false;
       btnClear.disabled = false;
 
-      setStatus(`Loaded: ${f.name}`, "ok");
+      setStatus(`Loaded: ${f.name} (Sheet: ${sheetName})`, "ok");
     } catch (err) {
       clearAll();
       setStatus(err?.message || "Failed to load file.", "bad");
