@@ -84,25 +84,30 @@
               <option value="inactive">No longer a TD customer</option>
             </select>
           </div>
-          <div>
-            <label class="label" for="ind_endDate"
-              >No longer customer as of (date)</label
-            >
-            <input
-              id="ind_endDate"
-              type="date"
-              placeholder="No longer customer as of (date)"
-            />
-          </div>
-          <div>
-            <label class="label" for="ind_reason"
-              >Reason for no longer being a customer</label
-            >
-            <input
-              id="ind_reason"
-              type="text"
-              placeholder="Reason for no longer being a customer"
-            />
+          <div class="row">
+            <div id="ind_inactive_fields">
+              <div>
+                <label class="label" for="ind_endDate"
+                  >No longer customer as of (date)</label
+                >
+                <input
+                  id="ind_endDate"
+                  type="date"
+                  placeholder="No longer customer as of (date)"
+                />
+              </div>
+
+              <div>
+                <label class="label" for="ind_reason"
+                  >Reason for no longer being a customer</label
+                >
+                <input
+                  id="ind_reason"
+                  type="text"
+                  placeholder="Reason for no longer being a customer"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -110,40 +115,201 @@
         <div class="row">
           <div><label class="label">Focal Entity Detail (Entity)</label></div>
         </div>
-
-        <input id="ent_focalName" type="text" placeholder="Focal entity" />
-        <input
-          id="ent_incorpDate"
-          type="date"
-          placeholder="Date of incorporation"
-        />
-        <input id="ent_city" type="text" placeholder="City" />
-        <input id="ent_state" type="text" placeholder="State" />
-        <input
-          id="ent_relationshipStart"
-          type="date"
-          placeholder="Relationship start date"
-        />
-        <input
-          id="ent_natureBusiness"
-          type="text"
-          placeholder="Nature of business"
-        />
-        <input id="ent_naics" type="text" placeholder="NAICS code" />
-        <input
-          id="ent_addlInfo"
-          type="text"
-          placeholder="Additional info (details + source)"
-        />
-        <input id="ent_relatedParty" type="text" placeholder="Related party" />
-        <input
-          id="ent_reason"
-          type="text"
-          placeholder="Reason for no longer being a customer"
-        />
+        <div class="flex">
+          <div>
+            <label class="label" for="ent_focalName">Focal entity</label>
+            <input id="ent_focalName" type="text" placeholder="Focal entity" />
+          </div>
+          <div>
+            <label class="label" for="ent_incorpDate"
+              >Date of incorporation</label
+            >
+            <input
+              id="ent_incorpDate"
+              type="date"
+              placeholder="Date of incorporation"
+            />
+          </div>
+          <div>
+            <label class="label" for="ent_city">City</label>
+            <input id="ent_city" type="text" placeholder="City" />
+          </div>
+          <div>
+            <label class="label" for="ent_state">State</label>
+            <input id="ent_state" type="text" placeholder="State" />
+          </div>
+          <div>
+            <label class="label" for="ent_relationshipStart"
+              >Relationship start date</label
+            >
+            <input
+              id="ent_relationshipStart"
+              type="date"
+              placeholder="Relationship start date"
+            />
+          </div>
+          <div>
+            <label class="label" for="ent_natureBusiness"
+              >Nature of business</label
+            >
+            <input
+              id="ent_natureBusiness"
+              type="text"
+              placeholder="Nature of business"
+            />
+          </div>
+          <div>
+            <label class="label" for="ent_naics">NAICS code</label>
+            <input id="ent_naics" type="text" placeholder="NAICS code" />
+          </div>
+          <div>
+            <label class="label" for="ent_addlInfo"
+              >Additional info (details + source)</label
+            >
+            <input
+              id="ent_addlInfo"
+              type="text"
+              placeholder="Additional info (details + source)"
+            />
+          </div>
+          <div>
+            <label class="label" for="ent_relatedParty">Related party</label>
+            <input
+              id="ent_relatedParty"
+              type="text"
+              placeholder="Related party"
+            />
+          </div>
+          <div>
+            <label class="label" for="ent_reason"
+              >Reason for no longer being a customer</label
+            >
+            <input
+              id="ent_reason"
+              type="text"
+              placeholder="Reason for no longer being a customer"
+            />
+          </div>
+        </div>
       </section>
-
       <section class="card">
+        <div class="row">
+          <div>
+            <label class="label">RFI Summary</label>
+            <div class="flex">
+              <label class="label" for="rfi_status" style="margin-top: 8px"
+                >RFI status</label
+              >
+              <select id="rfi_status">
+                <option value="no_prior_rfi_flag" selected>
+                  no Prior RFI Flag
+                </option>
+                <option value="prior_rfi_flag_present">
+                  If Prior RFI Flag is present
+                </option>
+                <option value="lookback_submitted_no_response">
+                  If Lookback RFI submitted, but no response received
+                </option>
+                <option value="lookback_submitted_response_received">
+                  If Lookback RFI submitted, and Response Received
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div
+          id="rfi_fields_prior"
+          class="rfi-fields hidden"
+          style="margin-top: 10px"
+        >
+          <div class="flex">
+            <div>
+              <label class="label" for="rfi_count">RFI count</label>
+              <input
+                id="rfi_count"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="e.g., 2"
+              />
+            </div>
+            <div>
+              <label class="label" for="rfi_submitted_date"
+                >RFI submitted date</label
+              >
+              <input id="rfi_submitted_date" type="date" />
+            </div>
+            <div>
+              <label class="label" for="rfi_questions_summary"
+                >Summary of questions</label
+              >
+              <textarea
+                id="rfi_questions_summary"
+                rows="3"
+                placeholder="Summary of questions"
+              ></textarea>
+            </div>
+            <div>
+              <label class="label" for="rfi_response_detail"
+                >RFI response detail</label
+              >
+              <textarea
+                id="rfi_response_detail"
+                rows="3"
+                placeholder="Enter response details"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+        <div
+          id="rfi_fields_lookback_noresp"
+          class="rfi-fields hidden"
+          style="margin-top: 10px"
+        >
+          <div class="flex">
+            <div>
+              <label class="label" for="rfi_lookback_submitted_date"
+                >Date submitted</label
+              >
+              <input id="rfi_lookback_submitted_date" type="date" />
+            </div>
+            <div>
+              <label class="label" for="rfi_lookback_purpose"
+                >Purpose for RFI</label
+              >
+              <textarea
+                id="rfi_lookback_purpose"
+                rows="3"
+                placeholder="Purpose for RFI"
+              ></textarea>
+            </div>
+            <div>
+              <label class="label" for="rfi_todays_date">Today's date</label>
+              <input id="rfi_todays_date" type="date" />
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="rfi_fields_lookback_resp"
+          class="rfi-fields hidden"
+          style="margin-top: 10px"
+        >
+          <div class="flex">
+            <div>
+              <label class="label" for="rfi_response_summary"
+                >Summary of RFI response</label
+              >
+              <textarea
+                id="rfi_response_summary"
+                rows="3"
+                placeholder="Summarize the response"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- <section class="card">
         <div class="row">
           <div>
             <label class="label">Analyst Comments</label>
@@ -229,8 +395,43 @@
             data-placeholder="Write your analysis points here..."
           ></div>
         </div>
-      </section>
+      </section> -->
+      <section class="card" id="counterparty-card">
+        <div class="row">
+          <div>
+            <label class="label">Counterparties</label>
 
+            <div class="flex" style="gap: 10px; align-items: flex-end">
+              <div style="flex: 1">
+                <label
+                  class="label"
+                  for="counterparty_count"
+                  style="margin-top: 8px"
+                  >Number of counterparties</label
+                >
+                <input
+                  id="counterparty_count"
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="e.g., 3"
+                />
+              </div>
+
+              <button
+                id="counterparty_add_btn"
+                type="button"
+                style="height: 38px"
+              >
+                Add
+              </button>
+            </div>
+            <div class="flex">
+              <div id="counterparty_fields" style="margin-top: 10px"></div>
+            </div>
+          </div>
+        </div>
+      </section>
       <section class="card">
         <div class="row">
           <div>

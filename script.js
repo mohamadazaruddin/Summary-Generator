@@ -100,6 +100,7 @@
     }
     return "";
   }
+  wireRfiStatusFields();
 
   function parseAmount(v) {
     if (v == null || v === "") return NaN;
@@ -190,7 +191,96 @@
     walk(tpl.content);
     return tpl.innerHTML;
   }
+  function buildRfiSummary(focalEntityName) {
+    const fe = (focalEntityName || "").trim() || "N/A";
 
+    const status =
+      document.getElementById("rfi_status")?.value || "no_prior_rfi_flag";
+    const valOrNA = (id) =>
+      (document.getElementById(id)?.value || "").trim() || "N/A";
+
+    if (status === "no_prior_rfi_flag") {
+      return `There are no prior RFIs identified for ${fe}.`;
+    }
+
+    if (status === "prior_rfi_flag_present") {
+      const count = valOrNA("rfi_count");
+      const submitted = valOrNA("rfi_submitted_date");
+      const questions = valOrNA("rfi_questions_summary");
+      const responseDate = valOrNA("rfi_questions_received_date");
+      const responseDetails = valOrNA("rfi_response_detail");
+
+      return `A total of ${count} prior RFIs were identified for ${fe}. An RFI was submitted by TD on ${submitted} to inquire about ${questions}. A response was received on ${responseDate}. The customer/branch stated: ${responseDetails}.`;
+    }
+
+    if (status === "lookback_submitted_no_response") {
+      const submitted = valOrNA("rfi_lookback_submitted_date");
+      const purpose = valOrNA("rfi_lookback_purpose");
+      const today = valOrNA("rfi_todays_date");
+
+      return `During the Lookback an RFI was submitted to TD on ${submitted} regarding ${purpose}. As of ${today}, no response has been received.`;
+    }
+
+    if (status === "lookback_submitted_response_received") {
+      const submitted = valOrNA("rfi_lookback_resp_submitted_date");
+      const purpose = valOrNA("rfi_lookback_resp_purpose");
+      const received = valOrNA("rfi_lookback_resp_received_date");
+      const summary = valOrNA("rfi_response_summary");
+
+      return `During the Lookback, an RFI was submitted to TD on ${submitted} regarding ${purpose}. A response was received on ${received}, stating: ${summary}.`;
+    }
+
+    return "";
+  }
+  function wireCustomerStatusToggle() {
+    const statusEl = document.getElementById("ind_customerStatus");
+    const inactiveWrap = document.getElementById("ind_inactive_fields");
+    const endDateEl = document.getElementById("ind_endDate");
+    const reasonEl = document.getElementById("ind_reason");
+    if (!statusEl || !inactiveWrap) return;
+
+    const apply = () => {
+      const isInactive = statusEl.value === "inactive";
+      inactiveWrap.style.display = isInactive ? "" : "none";
+
+      // Optional: clear values when hidden
+      if (!isInactive) {
+        if (endDateEl) endDateEl.value = "";
+        if (reasonEl) reasonEl.value = "";
+      }
+    };
+
+    statusEl.addEventListener("change", apply);
+    apply(); // run once on load
+  }
+  function buildCounterpartySummary() {
+    console.log("e");
+
+    const count =
+      Number.parseInt(
+        document.getElementById("counterparty_count")?.value,
+        10,
+      ) || 0;
+    const lines = [];
+
+    for (let i = 1; i <= count; i++) {
+      const name = document.getElementById(`cp_${i}_name`)?.value?.trim() || "";
+      const reason =
+        document.getElementById(`cp_${i}_reason`)?.value?.trim() || "";
+      const addl = document.getElementById(`cp_${i}_addl`)?.value?.trim() || "";
+
+      if (!name && !reason && !addl) continue;
+
+      let s = `Counterparty ${name || `#${i}`} has been sampled`;
+      if (reason) s += ` due to ${reason}`;
+      s += `.`;
+      if (addl) s += ` “${addl}”.`;
+
+      lines.push(s);
+    }
+
+    return lines;
+  }
   function buildSummaryHtml() {
     if (!rows.length) throw new Error("No transactions loaded.");
 
@@ -223,7 +313,7 @@
     const focalType =
       document.getElementById("focalType")?.value || "individual";
 
-    let paragraph = "";
+    let focalentitysummary = "";
 
     if (focalType === "individual") {
       const name = valOrNA("ind_focalName");
@@ -263,8 +353,8 @@
         statusSentence = `${name}'s accounts remain active.`;
       }
 
-      paragraph =
-        `(Individual): ${name}, born in ${yob}, is located in ${city}, ${state} and has been a TD Bank customer since ${relStart}. ` +
+      focalentitysummary =
+        ` ${name}, born in ${yob}, is located in ${city}, ${state} and has been a TD Bank customer since ${relStart}. ` +
         `${name} is a ${occupation} for ${employer}, per internal records${addlInfoClause}. ` +
         `(${statusSentence}) ` +
         `Total credits are ${creditText} and total debits are ${debitText}.`;
@@ -304,24 +394,108 @@
         statusSentence = `${name}'s accounts remain active.`;
       }
 
-      paragraph =
-        `(Entity): ${name}, incorporated on ${incorp}, is located in ${city}, ${state} and has been a TD Bank customer since ${relStart}. ` +
+      focalentitysummary =
+        `${name}, incorporated on ${incorp}, is located in ${city}, ${state} and has been a TD Bank customer since ${relStart}. ` +
         `${name}'s nature of business is ${nature} (NAICS: ${naics}). Related party: ${relatedParty}.` +
         `${addlInfoClause} ` +
         `(${statusSentence}) ` +
         `Total credits are ${creditText} and total debits are ${debitText}.`;
     } else {
       alert("Please check all the input fields are selected correctly.");
-      paragraph = "";
+      focalentitysummary = "";
     }
-
+    const name = valOrNA("ind_focalName");
+    let Rfisummary = buildRfiSummary(name);
+    let counterpartyLines = buildCounterpartySummary();
     return `
     <div>
-      <p>${esc(paragraph)}</p>
+      <p>${esc(focalentitysummary)}</p>
+      <p>${esc(Rfisummary)}</p>
+       ${counterpartyLines.map((l) => `<p>${esc(l)}</p>`).join("")}
     </div>
   `.trim();
   }
 
+  function wireRfiStatusFields() {
+    const statusEl = document.getElementById("rfi_status");
+    const priorEl = document.getElementById("rfi_fields_prior");
+    const noRespEl = document.getElementById("rfi_fields_lookback_noresp");
+    const respEl = document.getElementById("rfi_fields_lookback_resp");
+    const todaysEl = document.getElementById("rfi_todays_date");
+
+    if (!statusEl || !priorEl || !noRespEl || !respEl) return;
+
+    const setTodayIfEmpty = () => {
+      if (!todaysEl) return;
+      if (!todaysEl.value)
+        todaysEl.value = new Date().toISOString().slice(0, 10);
+    };
+
+    const sync = () => {
+      const v = statusEl.value;
+
+      priorEl.classList.toggle("hidden", v !== "prior_rfi_flag_present");
+      noRespEl.classList.toggle(
+        "hidden",
+        v !== "lookback_submitted_no_response",
+      );
+      respEl.classList.toggle(
+        "hidden",
+        v !== "lookback_submitted_response_received",
+      );
+
+      if (v === "lookback_submitted_no_response") setTodayIfEmpty();
+
+      console.log("RFI status:", v);
+    };
+
+    statusEl.addEventListener("change", sync);
+    sync();
+  }
+  function wireCounterpartyAddButton() {
+    const countEl = document.getElementById("counterparty_count");
+    const btnEl = document.getElementById("counterparty_add_btn");
+    const wrapEl = document.getElementById("counterparty_fields");
+    if (!countEl || !btnEl || !wrapEl) return;
+
+    const build = () => {
+      wrapEl.innerHTML = "";
+
+      const count = Math.max(
+        0,
+        Math.min(100, Number.parseInt(countEl.value, 10) || 0),
+      ); // cap at 100
+      for (let i = 1; i <= count; i++) {
+        const section = document.createElement("div");
+        section.className = "card";
+        section.style.marginTop = "10px";
+        section.style.padding = "10px";
+
+        section.innerHTML = `
+        <div class="row"><div><label class="label">Counterparty ${i}</label></div></div>
+
+        <label class="label" for="cp_${i}_name">Counterparty name</label>
+        <input id="cp_${i}_name" type="text" placeholder="Counterparty name" />
+
+        <label class="label" for="cp_${i}_reason">Reason for sampled</label>
+        <input id="cp_${i}_reason" type="text" placeholder="Reason for sampled" />
+
+        <label class="label" for="cp_${i}_addl">Additional information</label>
+        <input id="cp_${i}_addl" type="text" placeholder="Additional information" />
+      `;
+        wrapEl.appendChild(section);
+      }
+    };
+
+    btnEl.addEventListener("click", build);
+
+    // Optional: press Enter in the number input to trigger Add
+    countEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") build();
+    });
+  }
+  wireCounterpartyAddButton();
+  wireCustomerStatusToggle();
   async function copySummary() {
     const html = summaryEditor.innerHTML;
     const text = summaryEditor.innerText;
@@ -349,7 +523,6 @@
     fileName = "";
     fileEl.value = "";
 
-    analysisEditor.innerHTML = "";
     summaryEditor.innerHTML = "";
 
     btnGenerate.disabled = true;
