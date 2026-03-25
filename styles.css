@@ -93,14 +93,15 @@ h1 {
   align-items: center;
   flex-wrap: wrap;
 }
-#focal-entity-form input {
+input {
   background-color: #10151c;
   padding: 8px 12px;
   border-radius: 6px;
   border: 1px solid var(--line);
   color: var(--text);
+  margin-bottom: 10px;
 }
-#focal-entity-form input:focus {
+input:focus {
   background-color: #10151c;
   padding: 8px 12px;
   border-radius: 6px;
@@ -258,6 +259,7 @@ input[type="file"]::file-selector-button:hover {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 .flex .label {
   font-size: 14px;
@@ -269,4 +271,19 @@ input[type="file"]::file-selector-button:hover {
   color: var(--muted);
   padding: 8px;
   width: 150px;
+}
+.hidden {
+  display: none;
+}
+#ind_dob::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 1;
+}
+#ind_relationshipStart::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 1;
+}
+#ind_endDate::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 1;
 }

@@ -11,44 +11,138 @@
       <header class="head">
         <h1>Summary Generator</h1>
       </header>
-
       <section class="card">
         <label class="label">Upload Excel (.xlsx)</label
         ><input id="file" type="file" accept=".xlsx,.xlsm,.xlsb,.xls" />
 
         <div id="status" class="status" aria-live="polite"></div>
       </section>
-      <section class="card" id="focal-entity-form">
+      <div class="flex">
+        <label class="label" for="focalType">Focal entity type</label>
+        <select id="focalType">
+          <option value="individual" selected>Individual</option>
+          <option value="entity">Entity</option>
+        </select>
+      </div>
+      <section class="card" id="focal-individual-form">
         <div class="row">
           <div>
-            <label class="label">Focal Entity Detail</label>
-          </div>
-        </div>
-        <input id="focalName" type="text" placeholder="Focal entity name" />
-        <input id="city" type="text" placeholder="City" />
-        <input id="state" type="text" placeholder="State" />
-        <input id="occupation" type="text" placeholder="Occupation" />
-      </section>
-      <section class="card" id="summary-options">
-        <div class="row">
-          <div>
-            <label class="label">Summary Options</label>
+            <label class="label">Focal Entity Detail (Individual)</label>
           </div>
         </div>
         <div class="flex">
-          <label class="label" for="escalationType">Case type</label>
-          <select id="escalationType">
-            <option value="non_escalation" selected>Non escalation</option>
-            <option value="escalation">Escalation</option>
-          </select>
-
-          <label class="label" for="summaryMode">Summary mode</label>
-          <select id="summaryMode">
-            <option value="standard" selected>Standard</option>
-            <option value="simplified">Simplified</option>
-          </select>
+          <div>
+            <label class="label" for="ind_focalName">Focal entity</label>
+            <input id="ind_focalName" type="text" placeholder="Focal entity" />
+          </div>
+          <div>
+            <label class="label" for="ind_dob">Date of birth</label>
+            <input id="ind_dob" type="date" placeholder="Date of birth" />
+          </div>
+          <div>
+            <label class="label" for="ind_city">City</label>
+            <input id="ind_city" type="text" placeholder="City" />
+          </div>
+          <div>
+            <label class="label" for="ind_state">State</label>
+            <input id="ind_state" type="text" placeholder="State" />
+          </div>
+          <div>
+            <label class="label" for="ind_occupation">Occupation</label>
+            <input id="ind_occupation" type="text" placeholder="Occupation" />
+          </div>
+          <div>
+            <label class="label" for="ind_employer">Employer name</label>
+            <input id="ind_employer" type="text" placeholder="Employer name" />
+          </div>
+          <div>
+            <label class="label" for="ind_relationshipStart"
+              >Relationship start date</label
+            >
+            <input
+              id="ind_relationshipStart"
+              type="date"
+              placeholder="Relationship start date"
+            />
+          </div>
+          <div>
+            <label class="label" for="ind_addlInfo"
+              >Additional info (details + source)</label
+            >
+            <input
+              id="ind_addlInfo"
+              type="text"
+              placeholder="Additional info (details + source)"
+            />
+          </div>
+          <div>
+            <label class="label" for="ind_customerStatus"
+              >Customer status</label
+            >
+            <select id="ind_customerStatus">
+              <option value="active" selected>Still a TD customer</option>
+              <option value="inactive">No longer a TD customer</option>
+            </select>
+          </div>
+          <div>
+            <label class="label" for="ind_endDate"
+              >No longer customer as of (date)</label
+            >
+            <input
+              id="ind_endDate"
+              type="date"
+              placeholder="No longer customer as of (date)"
+            />
+          </div>
+          <div>
+            <label class="label" for="ind_reason"
+              >Reason for no longer being a customer</label
+            >
+            <input
+              id="ind_reason"
+              type="text"
+              placeholder="Reason for no longer being a customer"
+            />
+          </div>
         </div>
       </section>
+      <section class="card hidden" id="focal-entity-form">
+        <div class="row">
+          <div><label class="label">Focal Entity Detail (Entity)</label></div>
+        </div>
+
+        <input id="ent_focalName" type="text" placeholder="Focal entity" />
+        <input
+          id="ent_incorpDate"
+          type="date"
+          placeholder="Date of incorporation"
+        />
+        <input id="ent_city" type="text" placeholder="City" />
+        <input id="ent_state" type="text" placeholder="State" />
+        <input
+          id="ent_relationshipStart"
+          type="date"
+          placeholder="Relationship start date"
+        />
+        <input
+          id="ent_natureBusiness"
+          type="text"
+          placeholder="Nature of business"
+        />
+        <input id="ent_naics" type="text" placeholder="NAICS code" />
+        <input
+          id="ent_addlInfo"
+          type="text"
+          placeholder="Additional info (details + source)"
+        />
+        <input id="ent_relatedParty" type="text" placeholder="Related party" />
+        <input
+          id="ent_reason"
+          type="text"
+          placeholder="Reason for no longer being a customer"
+        />
+      </section>
+
       <section class="card">
         <div class="row">
           <div>

@@ -11,15 +11,9 @@
 
   const analysisEditor = el("analysisEditor");
   const summaryEditor = el("summaryEditor");
-
-  // NEW: detail inputs
-  const focalNameEl = el("focalName");
-  const cityEl = el("city");
-  const stateEl = el("state");
-  const occupationEl = el("occupation");
-  const escalationTypeEl = el("escalationType");
-  const summaryModeEl = el("summaryMode");
-
+  const focalTypeEl = document.getElementById("focalType");
+  const individualFormEl = document.getElementById("focal-individual-form");
+  const entityFormEl = document.getElementById("focal-entity-form");
   let rows = [];
   let fileName = "";
 
@@ -41,7 +35,57 @@
     const wanted = normalize(wantedName);
     return (wb.SheetNames || []).find((n) => normalize(n) === wanted) || "";
   }
+  function setFocalFormVisibility() {
+    const type = focalTypeEl?.value || "individual";
+    const isIndividual = type === "individual";
 
+    individualFormEl.classList.toggle("hidden", !isIndividual);
+    entityFormEl.classList.toggle("hidden", isIndividual);
+  }
+
+  focalTypeEl?.addEventListener("change", setFocalFormVisibility);
+  setFocalFormVisibility();
+
+  // Optional helper to read active form values with N/A fallback
+  function valOrNA(id) {
+    const v = (document.getElementById(id)?.value || "").trim();
+    return v || "N/A";
+  }
+  function getFocalDetails() {
+    const type = focalTypeEl?.value || "individual";
+
+    if (type === "individual") {
+      return {
+        type,
+        focalName: valOrNA("ind_focalName"),
+        dob: valOrNA("ind_dob"),
+        city: valOrNA("ind_city"),
+        state: valOrNA("ind_state"),
+        occupation: valOrNA("ind_occupation"),
+        employer: valOrNA("ind_employer"),
+        reason: valOrNA("ind_reason"),
+      };
+    }
+
+    if (type === "entity") {
+      return {
+        type,
+        focalName: valOrNA("ent_focalName"),
+        incorpDate: valOrNA("ent_incorpDate"),
+        city: valOrNA("ent_city"),
+        state: valOrNA("ent_state"),
+        relationshipStart: valOrNA("ent_relationshipStart"),
+        natureBusiness: valOrNA("ent_natureBusiness"),
+        naics: valOrNA("ent_naics"),
+        addlInfo: valOrNA("ent_addlInfo"),
+        relatedParty: valOrNA("ent_relatedParty"),
+        reason: valOrNA("ent_reason"),
+      };
+    }
+
+    alert("Please select a valid focal entity type.");
+    return null;
+  }
   function findCol(headers, candidates) {
     const normToOrig = new Map(headers.map((h) => [normalize(h), h]));
     for (const c of candidates) {
@@ -77,18 +121,6 @@
     const n = Number(numStr);
     if (!Number.isFinite(n)) return NaN;
     return neg ? -n : n;
-  }
-
-  function parseDate(v) {
-    if (v == null || v === "") return null;
-    if (v instanceof Date && !isNaN(v)) return v;
-    if (typeof v === "number") {
-      const epoch = new Date(Date.UTC(1899, 11, 30));
-      const d = new Date(epoch.getTime() + v * 86400000);
-      return isNaN(d) ? null : d;
-    }
-    const d = new Date(String(v));
-    return isNaN(d) ? null : d;
   }
 
   function fmtMoney(n) {
@@ -162,13 +194,11 @@
   function buildSummaryHtml() {
     if (!rows.length) throw new Error("No transactions loaded.");
 
-    const focalName = (focalNameEl?.value || "").trim() || "N/A";
-    const city = (cityEl?.value || "").trim() || "N/A";
-    const state = (stateEl?.value || "").trim() || "N/A";
-    const occupation = (occupationEl?.value || "").trim() || "N/A";
-    const escalationType = escalationTypeEl?.value || "non_escalation";
-    const summaryMode = summaryModeEl?.value || "standard";
+    const valOrNA = (id) =>
+      (document.getElementById(id)?.value || "").trim() || "N/A";
+    const valTrim = (id) => (document.getElementById(id)?.value || "").trim();
 
+    // Detect amount column and compute credits/debits
     const headers = Object.keys(rows[0] || {});
     const amtCol = findCol(headers, [
       "amount",
@@ -178,13 +208,11 @@
       "debit",
       "credit",
     ]);
-
     if (!amtCol) throw new Error('Could not detect an "amount" column.');
 
     const amounts = rows
       .map((r) => parseAmount(r[amtCol]))
       .filter((n) => Number.isFinite(n));
-
     const credit = amounts.filter((n) => n > 0).reduce((a, n) => a + n, 0);
     const debit = Math.abs(
       amounts.filter((n) => n < 0).reduce((a, n) => a + n, 0),
@@ -192,24 +220,96 @@
     const creditText = `$${fmtMoney(credit)}`;
     const debitText = `$${fmtMoney(debit)}`;
 
+    const focalType =
+      document.getElementById("focalType")?.value || "individual";
+
     let paragraph = "";
-    if (escalationType === "escalation" && summaryMode === "standard") {
-      paragraph = `Escalation summary: The focal entity is "${focalName}" located in ${city}, ${state}, with occupation "${occupation}". Total credits are ${creditText} and total debits are ${debitText}.`;
-    } else if (
-      escalationType === "escalation" &&
-      summaryMode === "simplified"
-    ) {
-      paragraph = `Escalation: "${focalName}" (${city}, ${state}; "${occupation}") — Credits ${creditText}; Debits ${debitText}.`;
-    } else if (
-      escalationType === "non_escalation" &&
-      summaryMode === "standard"
-    ) {
-      paragraph = `Summary: The focal entity is "${focalName}" located in ${city}, ${state}, with occupation "${occupation}". Total credits are ${creditText} and total debits are ${debitText}.`;
-    } else if (
-      escalationType === "non_escalation" &&
-      summaryMode === "simplified"
-    ) {
-      paragraph = `Non-escalation: "${focalName}" (${city}, ${state}; "${occupation}") — Credits ${creditText}; Debits ${debitText}.`;
+
+    if (focalType === "individual") {
+      const name = valOrNA("ind_focalName");
+      const dobRaw = valTrim("ind_dob");
+      const yob =
+        dobRaw && !Number.isNaN(new Date(dobRaw).getTime())
+          ? String(new Date(dobRaw).getFullYear())
+          : "N/A";
+
+      const city = valOrNA("ind_city");
+      const state = valOrNA("ind_state");
+      const occupation = valOrNA("ind_occupation");
+      const employer = valOrNA("ind_employer");
+      const relStart = valOrNA("ind_relationshipStart");
+
+      const addlInfo = valTrim("ind_addlInfo");
+      const addlInfoClause = addlInfo ? ` ${addlInfo}` : "";
+
+      const customerStatusEl = document.getElementById("ind_customerStatus");
+      const endDateRaw = valTrim("ind_endDate");
+      const reasonRaw = valTrim("ind_reason");
+
+      const customerStatus =
+        (customerStatusEl && customerStatusEl.value) ||
+        (endDateRaw || reasonRaw ? "inactive" : "active");
+
+      let statusSentence = "";
+      if (customerStatus === "inactive") {
+        const endDate = valOrNA("ind_endDate");
+        const reason = valOrNA("ind_reason");
+
+        if (endDate === "N/A" || reason === "N/A") {
+          alert('Please fill "No longer customer as of" date and reason.');
+        }
+        statusSentence = `${name} is no longer a TD customer as of ${endDate} because ${reason}.`;
+      } else {
+        statusSentence = `${name}'s accounts remain active.`;
+      }
+
+      paragraph =
+        `(Individual): ${name}, born in ${yob}, is located in ${city}, ${state} and has been a TD Bank customer since ${relStart}. ` +
+        `${name} is a ${occupation} for ${employer}, per internal records${addlInfoClause}. ` +
+        `(${statusSentence}) ` +
+        `Total credits are ${creditText} and total debits are ${debitText}.`;
+    } else if (focalType === "entity") {
+      const name = valOrNA("ent_focalName");
+      const incorp = valOrNA("ent_incorpDate");
+      const city = valOrNA("ent_city");
+      const state = valOrNA("ent_state");
+      const relStart = valOrNA("ent_relationshipStart");
+      const nature = valOrNA("ent_natureBusiness");
+      const naics = valOrNA("ent_naics");
+      const relatedParty = valOrNA("ent_relatedParty");
+
+      const addlInfo = valTrim("ent_addlInfo");
+      const addlInfoClause = addlInfo
+        ? ` Additional information: ${addlInfo}.`
+        : "";
+
+      const customerStatusEl = document.getElementById("ent_customerStatus");
+      const endDateRaw = valTrim("ent_endDate");
+      const reasonRaw = valTrim("ent_reason");
+
+      const customerStatus =
+        (customerStatusEl && customerStatusEl.value) ||
+        (endDateRaw || reasonRaw ? "inactive" : "active");
+
+      let statusSentence = "";
+      if (customerStatus === "inactive") {
+        const endDate = valOrNA("ent_endDate");
+        const reason = valOrNA("ent_reason");
+
+        if (endDate === "N/A" || reason === "N/A") {
+          alert('Please fill "No longer customer as of" date and reason.');
+        }
+        statusSentence = `${name} is no longer a TD customer as of ${endDate} because ${reason}.`;
+      } else {
+        statusSentence = `${name}'s accounts remain active.`;
+      }
+
+      paragraph =
+        `(Entity): ${name}, incorporated on ${incorp}, is located in ${city}, ${state} and has been a TD Bank customer since ${relStart}. ` +
+        `${name}'s nature of business is ${nature} (NAICS: ${naics}). Related party: ${relatedParty}.` +
+        `${addlInfoClause} ` +
+        `(${statusSentence}) ` +
+        `Total credits are ${creditText} and total debits are ${debitText}.`;
     } else {
       alert("Please check all the input fields are selected correctly.");
       paragraph = "";
