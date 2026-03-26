@@ -11,19 +11,21 @@
       <header class="head">
         <h1>Summary Generator</h1>
       </header>
-      <section class="card">
-        <label class="label">Upload Excel (.xlsx)</label
-        ><input id="file" type="file" accept=".xlsx,.xlsm,.xlsb,.xls" />
-
-        <div id="status" class="status" aria-live="polite"></div>
+      <section class="card" style="width: fit-content; display: flex">
+        <div>
+          <label class="label">Upload Excel (.xlsx)</label
+          ><input id="file" type="file" accept=".xlsx,.xlsm,.xlsb,.xls" />
+          <div id="status" class="status" aria-live="polite"></div>
+        </div>
+        <div class="flex">
+          <label class="label" for="focalType">Focal entity type</label>
+          <select id="focalType" style="width: 300px">
+            <option value="individual" selected>Individual</option>
+            <option value="entity">Entity</option>
+          </select>
+        </div>
       </section>
-      <div class="flex">
-        <label class="label" for="focalType">Focal entity type</label>
-        <select id="focalType">
-          <option value="individual" selected>Individual</option>
-          <option value="entity">Entity</option>
-        </select>
-      </div>
+
       <section class="card" id="focal-individual-form">
         <div class="row">
           <div>
@@ -397,12 +399,11 @@
         </div>
       </section> -->
       <section class="card" id="counterparty-card">
-        <div class="row">
+        <div class="row" style="width: 100%; display: block">
           <div>
             <label class="label">Counterparties</label>
-
-            <div class="flex" style="gap: 10px; align-items: flex-end">
-              <div style="flex: 1">
+            <div class="flex" style="gap: 10px; align-items: center">
+              <div>
                 <label
                   class="label"
                   for="counterparty_count"
@@ -418,20 +419,23 @@
                 />
               </div>
 
-              <button
-                id="counterparty_add_btn"
-                type="button"
-                style="height: 38px"
-              >
-                Add
-              </button>
+              <button id="counterparty_add_btn" type="button">Add</button>
             </div>
-            <div class="flex">
-              <div id="counterparty_fields" style="margin-top: 10px"></div>
-            </div>
+          </div>
+          <div class="flex" style="width: 100%">
+            <div id="counterparty_fields" style="margin-top: 10px"></div>
           </div>
         </div>
       </section>
+      <section class="card" id="counterparty-card">
+        <div class="row" style="width: 100%; display: block">
+          <div>
+            <label class="label">Analyst Comments</label>
+            <div class="flex" style="gap: 10px; align-items: center"></div>
+          </div>
+        </div>
+      </section>
+
       <section class="card">
         <div class="row">
           <div>
