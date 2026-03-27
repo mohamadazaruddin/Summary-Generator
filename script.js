@@ -17,7 +17,18 @@
     const totalRowCount = calculateCount(rows, "AMOUNT", {
       countNonEmpty: false,
     });
-    console.log(totalAmount, "rows", totalRowCount);
+    const { start, end } = calculatedateRange(rows, "Transaction Date");
+    const result = caluculatevalue(rows, "Transaction Type", "p2p");
+    console.log(
+      totalAmount,
+      "rows",
+      totalRowCount,
+      start,
+      "-",
+      end,
+      result,
+      rows,
+    );
   }
 
   function calculatingTotal(rows, headerName) {
@@ -70,7 +81,125 @@
       return nonEmpty ? count + 1 : count;
     }, 0);
   }
+  function caluculatevalue(rows, headerName, type) {
+    if (!Array.isArray(rows)) throw new TypeError("rows must be an array");
+    if (!headerName || !type) {
+      return { debitTotal: 0, creditTotal: 0, total: 0 };
+    }
 
+    const normalize = (v) =>
+      String(v || "")
+        .trim()
+        .toLowerCase();
+
+    const findKey = (rows, targetHeader) => {
+      const target = normalize(targetHeader);
+      const keys = rows.flatMap((r) =>
+        r && typeof r === "object" ? Object.keys(r) : [],
+      );
+      return keys.find((k) => normalize(k) === target) || targetHeader;
+    };
+
+    const typeKey = findKey(rows, headerName); // e.g. TRANSACTION TYPE
+    const amountKey = findKey(rows, "AMOUNT"); // AMOUNT
+    const creditDebitKey = findKey(rows, "CREDIT / DEBIT"); // CREDIT / DEBIT
+
+    const toNumber = (v) => {
+      if (typeof v === "number") return v;
+      if (typeof v !== "string") return NaN;
+      const cleaned = v.replace(/[$,]/g, "").trim();
+      return cleaned ? Number(cleaned) : NaN;
+    };
+
+    let debitTotal = 0;
+    let creditTotal = 0;
+
+    for (const row of rows) {
+      if (normalize(row?.[typeKey]) !== normalize(type)) continue;
+
+      const amount = toNumber(row?.[amountKey]);
+      const direction = normalize(row?.[creditDebitKey]);
+
+      if (!Number.isFinite(amount)) continue;
+
+      if (direction === "debit") debitTotal += amount;
+      if (direction === "credit") creditTotal += amount;
+    }
+
+    return {
+      debitTotal,
+      creditTotal,
+      total: debitTotal + creditTotal,
+    };
+  }
+
+  const formatMMDDYYYY = (d) => {
+    if (!(d instanceof Date) || Number.isNaN(d.getTime())) return null;
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  };
+
+  function calculatedateRange(rows, dateHeaderName) {
+    if (!Array.isArray(rows)) throw new TypeError("rows must be an array");
+    if (!dateHeaderName) return { start: null, end: null, key: null };
+
+    const target = String(dateHeaderName).trim().toLowerCase();
+
+    const keys = rows.flatMap((r) =>
+      r && typeof r === "object" ? Object.keys(r) : [],
+    );
+
+    const key =
+      keys.find((k) => String(k).trim().toLowerCase() === target) ||
+      dateHeaderName;
+
+    const toDate = (v) => {
+      if (v instanceof Date) return Number.isNaN(v.getTime()) ? null : v;
+      if (typeof v === "number") {
+        const d = new Date(v);
+        return Number.isNaN(d.getTime()) ? null : d;
+      }
+      if (typeof v !== "string") return null;
+
+      const s = v.trim();
+      if (!s) return null;
+
+      // Strict MM/DD/YYYY only
+      const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (!m) return null;
+
+      const mm = Number(m[1]);
+      const dd = Number(m[2]);
+      const yyyy = Number(m[3]);
+      if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+
+      const d = new Date(yyyy, mm - 1, dd);
+
+      // Reject rollover dates (e.g., 02/31 -> Mar 2)
+      if (
+        d.getFullYear() !== yyyy ||
+        d.getMonth() !== mm - 1 ||
+        d.getDate() !== dd
+      )
+        return null;
+
+      return d;
+    };
+
+    let start = null;
+    let end = null;
+
+    for (const r of rows) {
+      const d = toDate(r?.[key]);
+      if (!d) continue;
+      if (!start || d < start) start = d;
+      if (!end || d > end) end = d;
+    }
+
+    return { start: formatMMDDYYYY(start), end: formatMMDDYYYY(end), key };
+  }
   function setStatus(msg, kind = "") {
     statusEl.textContent = msg || "";
     statusEl.className = "status" + (kind ? ` ${kind}` : "");
@@ -208,20 +337,17 @@
   }
 
   function buildAnalystDisposition() {
+    const name = valOrNA("ind_focalName");
+    const occupation = valOrNA("ind_occupation");
+    const employer = valOrNA("ind_employer");
     return `
       
       <p>
-      The Focal Entity, [FOCAL ENTITY], is a [OCCUPATION] at [EMPLOYER]. The Focal Entity maintains
+      The Focal Entity, ${name}, is a ${occupation} at ${employer}. The Focal Entity maintains
         [ACCOUNT TYPES]. The credits on the account reflected [TYPES OF CREDITS, GENERAL DESCRIPTION
         OF ORIGINATOR(S), AND APPARENT PURPOSE OF THE CREDITS]. Account debits primarily reflect
         [GENERAL DESCRIPTION OF DEBITS AND THEIR APPARENT PURPOSE]. The activity appears reasonable
         [MITIGATING REASONS FOR THE ACTIVITY].
-      </p>
-
-      <p>
-        The [RULE CATEGORY] triggered due to [REASON FOR ALERT]; however, [REASONS WHY THE ALERTING
-        ACTIVITY IS NOT OF CONCERN], with no additional red flags identified. The case is being closed
-        as the investigation was able to [MITIGATE FACTORS].
       </p>
 
       <p>
@@ -236,9 +362,10 @@
   `.trim();
   }
   function p2psummary() {
+    const { start, end } = calculatedateRange(rows, "Transaction Date");
     return `
       <p>
-      Between [DATES OF FULL REVIEW PERIOD], the Focal Entity received [# P2P credits] P2P transactions through [list P2P Platform names] totaling [$ total P2P credit amount] ([percentage of total credits by value originating from P2P transactions]% of total credits) (if available: from [#] Counterparties) and conducted [# P2P debit] P2P transactions through [list P2P Platform names] totaling [$ total P2P debit amount] ([percentage of total debits by value originating from P2P transactions]% of total activity) (if available: from [#] Counterparties). [Include a short description about whether the P2P activity appears reasonable for the customer]. 
+      Between ${start} - ${end}, the Focal Entity received [# P2P credits] P2P transactions through [list P2P Platform names] totaling [$ total P2P credit amount] ([percentage of total credits by value originating from P2P transactions]% of total credits) (if available: from [#] Counterparties) and conducted [# P2P debit] P2P transactions through [list P2P Platform names] totaling [$ total P2P debit amount] ([percentage of total debits by value originating from P2P transactions]% of total activity) (if available: from [#] Counterparties). [Include a short description about whether the P2P activity appears reasonable for the customer]. 
       </p>
 
   `.trim();
@@ -400,8 +527,7 @@
     return (
       ` ${name}, born in ${yob}, is located in ${city}, ${state} and has been a TD Bank customer since ${relStart}. ` +
       `${name} is a ${occupation} for ${employer}, per internal records${addlInfoClause}. ` +
-      `(${statusSentence}) ` +
-      `Total credits are ${"creditText"} and total debits are ${"debitText"}.`
+      `${statusSentence} `
     );
   }
   function buildEntityFocalSummary({ valOrNA, valTrim }) {
@@ -418,7 +544,7 @@
     const addlInfoClause = addlInfo
       ? ` Additional information: ${addlInfo}.`
       : "";
-
+    const relatedpartypercentage = "input to add";
     const customerStatusEl = document.getElementById("ent_customerStatus");
     const endDateRaw = valTrim("ent_endDate");
     const reasonRaw = valTrim("ent_reason");
@@ -440,13 +566,9 @@
       statusSentence = `${name}'s accounts remain active.`;
     }
 
-    return (
-      `${name}, incorporated on ${incorp}, is located in ${city}, ${state} and has been a TD Bank customer since ${relStart}. ` +
-      `${name}'s nature of business is ${nature} (NAICS: ${naics}). Related party: ${relatedParty}.` +
-      `${addlInfoClause} ` +
-      `(${statusSentence}) ` +
-      `Total credits are ${"creditText"} and total debits are ${"debitText"}.`
-    );
+    return `${name}, incorporated on ${incorp}, is located in ${city}, ${state} and has been a TD Bank customer since ${relStart}. 
+     ${name}'s nature of business is ${nature} (NAICS: ${naics}), per internal records
+       ${addlInfoClause}. ${relatedParty} is Listed as the beneficial owner ${relatedpartypercentage} ${statusSentence} `;
   }
   function clearAll() {
     rows = [];
@@ -462,13 +584,12 @@
     setStatus("", "");
   }
 
+  const valOrNA = (id) =>
+    (document.getElementById(id)?.value || "").trim() || "N/A";
+  const valTrim = (id) => (document.getElementById(id)?.value || "").trim();
   // Main Summary
   function buildSummaryHtml() {
     if (!rows.length) throw new Error("No transactions loaded.");
-
-    const valOrNA = (id) =>
-      (document.getElementById(id)?.value || "").trim() || "N/A";
-    const valTrim = (id) => (document.getElementById(id)?.value || "").trim();
 
     const focalType =
       document.getElementById("focalType")?.value || "individual";
@@ -577,7 +698,6 @@
         throw new Error('No rows found in "Transactions" sheet.');
 
       rows = json;
-
       TransactionDataPoints(rows);
       btnGenerate.disabled = false;
       btnClear.disabled = false;
