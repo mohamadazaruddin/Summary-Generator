@@ -13,82 +13,36 @@
 
   // function for all the the transaction data points
   function TransactionDataPoints() {
-    const totalAmount = calculatingTotal(rows, "AMOUNT");
-    const totalRowCount = calculateCount(rows, "AMOUNT", {
-      countNonEmpty: false,
-    });
-    const { start, end } = calculatedateRange(rows, "Transaction Date");
-    const result = caluculatevalue(rows, "Transaction Type", "p2p");
-    console.log(
-      totalAmount,
-      "rows",
-      totalRowCount,
-      start,
-      "-",
-      end,
-      result,
+    const totalAmount = calculateDebitCreditTotalsAndCounts(rows);
+    const totalAmountp2p = calculateTotalsAndCountsByType(
       rows,
+      "Transaction Type",
+      "p2p",
     );
+    const percentage = calculateP2PPercentOfTotals({
+      totalDebit: totalAmount.debitTotal,
+      p2pDebit: totalAmountp2p.debitTotal,
+      totalCredit: totalAmount.creditTotal,
+      p2pCredit: totalAmountp2p.creditTotal,
+    });
+    console.log(percentage, "red");
   }
 
-  function calculatingTotal(rows, headerName) {
+  function calculateDebitCreditTotalsAndCounts(
+    rows,
+    {
+      amountHeader = "AMOUNT",
+      directionHeader = "CREDIT / DEBIT",
+      // optional filter (e.g., headerName="TRANSACTION TYPE", type="Sales")
+      filterHeader,
+      filterValue,
+      requireValidAmount = true,
+    } = {},
+  ) {
     if (!Array.isArray(rows)) throw new TypeError("rows must be an array");
-    if (!headerName) return 0;
-
-    const target = String(headerName).trim().toLowerCase();
-
-    // Find the actual key in the data (case/space-insensitive)
-    const keys = rows.flatMap((r) =>
-      r && typeof r === "object" ? Object.keys(r) : [],
-    );
-    const key =
-      keys.find((k) => String(k).trim().toLowerCase() === target) || headerName;
-
-    const toNumber = (v) => {
-      if (typeof v === "number") return v;
-      if (typeof v !== "string") return NaN;
-      const cleaned = v.replace(/[$,]/g, "").trim();
-      return cleaned ? Number(cleaned) : NaN;
-    };
-
-    return rows.reduce((sum, r) => {
-      const n = toNumber(r?.[key]);
-      return Number.isFinite(n) ? sum + n : sum;
-    }, 0);
-  }
-
-  function calculateCount(rows, headerName, { countNonEmpty = true } = {}) {
-    if (!Array.isArray(rows)) throw new TypeError("rows must be an array");
-    if (!headerName) return 0;
-
-    const target = String(headerName).trim().toLowerCase();
-
-    // Find the actual key in the data (case/space-insensitive)
-    const keys = rows.flatMap((r) =>
-      r && typeof r === "object" ? Object.keys(r) : [],
-    );
-    const key =
-      keys.find((k) => String(k).trim().toLowerCase() === target) || headerName;
-
-    if (!countNonEmpty) return rows.length;
-
-    return rows.reduce((count, r) => {
-      const v = r?.[key];
-      const nonEmpty =
-        v !== null &&
-        v !== undefined &&
-        !(typeof v === "string" && v.trim() === "");
-      return nonEmpty ? count + 1 : count;
-    }, 0);
-  }
-  function caluculatevalue(rows, headerName, type) {
-    if (!Array.isArray(rows)) throw new TypeError("rows must be an array");
-    if (!headerName || !type) {
-      return { debitTotal: 0, creditTotal: 0, total: 0 };
-    }
 
     const normalize = (v) =>
-      String(v || "")
+      String(v ?? "")
         .trim()
         .toLowerCase();
 
@@ -100,9 +54,9 @@
       return keys.find((k) => normalize(k) === target) || targetHeader;
     };
 
-    const typeKey = findKey(rows, headerName); // e.g. TRANSACTION TYPE
-    const amountKey = findKey(rows, "AMOUNT"); // AMOUNT
-    const creditDebitKey = findKey(rows, "CREDIT / DEBIT"); // CREDIT / DEBIT
+    const amountKey = findKey(rows, amountHeader);
+    const dirKey = findKey(rows, directionHeader);
+    const filterKey = filterHeader ? findKey(rows, filterHeader) : null;
 
     const toNumber = (v) => {
       if (typeof v === "number") return v;
@@ -111,28 +65,146 @@
       return cleaned ? Number(cleaned) : NaN;
     };
 
-    let debitTotal = 0;
-    let creditTotal = 0;
+    const toDir = (v) => {
+      const d = normalize(v);
+      if (d === "debit" || d === "dr") return "debit";
+      if (d === "credit" || d === "cr") return "credit";
+      return null;
+    };
+
+    let debitTotal = 0,
+      creditTotal = 0,
+      debitCount = 0,
+      creditCount = 0;
+
+    for (const row of rows) {
+      if (filterKey && normalize(row?.[filterKey]) !== normalize(filterValue))
+        continue;
+
+      const dir = toDir(row?.[dirKey]);
+      if (!dir) continue;
+
+      const amt = toNumber(row?.[amountKey]);
+      if (requireValidAmount && !Number.isFinite(amt)) continue;
+
+      if (dir === "debit") {
+        debitCount += 1;
+        if (Number.isFinite(amt)) debitTotal += amt;
+      } else {
+        creditCount += 1;
+        if (Number.isFinite(amt)) creditTotal += amt;
+      }
+    }
+
+    return {
+      debitTotal,
+      creditTotal,
+      // totalAmount: debitTotal + creditTotal,
+      debitCount,
+      creditCount,
+      // totalCount: debitCount + creditCount,
+    };
+  }
+
+  function calculateTotalsAndCountsByType(
+    rows,
+    headerName,
+    type,
+    { requireValidAmountForCount = false } = {},
+  ) {
+    if (!Array.isArray(rows)) throw new TypeError("rows must be an array");
+    if (!headerName || !type) {
+      return {
+        debitTotal: 0,
+        creditTotal: 0,
+        total: 0,
+        debitCount: 0,
+        creditCount: 0,
+        totalCount: 0,
+      };
+    }
+
+    const normalize = (v) =>
+      String(v ?? "")
+        .trim()
+        .toLowerCase();
+
+    const findKey = (rows, targetHeader) => {
+      const target = normalize(targetHeader);
+      const keys = rows.flatMap((r) =>
+        r && typeof r === "object" ? Object.keys(r) : [],
+      );
+      return keys.find((k) => normalize(k) === target) || targetHeader;
+    };
+
+    const typeKey = findKey(rows, headerName);
+    const amountKey = findKey(rows, "AMOUNT");
+    const creditDebitKey = findKey(rows, "CREDIT / DEBIT");
+
+    const toNumber = (v) => {
+      if (typeof v === "number") return v;
+      if (typeof v !== "string") return NaN;
+      const cleaned = v.replace(/[$,]/g, "").trim();
+      return cleaned ? Number(cleaned) : NaN;
+    };
+
+    let debitTotal = 0,
+      creditTotal = 0,
+      debitCount = 0,
+      creditCount = 0;
 
     for (const row of rows) {
       if (normalize(row?.[typeKey]) !== normalize(type)) continue;
 
-      const amount = toNumber(row?.[amountKey]);
       const direction = normalize(row?.[creditDebitKey]);
+      const amount = toNumber(row?.[amountKey]);
+      const hasValidAmount = Number.isFinite(amount);
 
-      if (!Number.isFinite(amount)) continue;
+      // counts
+      if (!requireValidAmountForCount || hasValidAmount) {
+        if (direction === "debit") debitCount += 1;
+        else if (direction === "credit") creditCount += 1;
+      }
 
+      // totals (only when amount is valid)
+      if (!hasValidAmount) continue;
       if (direction === "debit") debitTotal += amount;
-      if (direction === "credit") creditTotal += amount;
+      else if (direction === "credit") creditTotal += amount;
     }
 
     return {
       debitTotal,
       creditTotal,
       total: debitTotal + creditTotal,
+      debitCount,
+      creditCount,
+      totalCount: debitCount + creditCount,
     };
   }
 
+  function calculateP2PPercentOfTotals({
+    totalDebit = 0,
+    totalCredit = 0,
+    p2pDebit = 0,
+    p2pCredit = 0,
+    decimals = 2,
+  } = {}) {
+    const toNum = (v) => (Number.isFinite(v) ? v : Number(v));
+    const safe = (n) => (Number.isFinite(n) ? n : 0);
+
+    totalDebit = safe(toNum(totalDebit));
+    totalCredit = safe(toNum(totalCredit));
+    p2pDebit = safe(toNum(p2pDebit));
+    p2pCredit = safe(toNum(p2pCredit));
+
+    const pct = (part, whole) =>
+      whole === 0 ? 0 : Number(((part / whole) * 100).toFixed(decimals));
+
+    return {
+      p2pPctOfTotalDebit: pct(p2pDebit, totalDebit), // % of total debit from P2P
+      p2pPctOfTotalCredit: pct(p2pCredit, totalCredit), // % of total credit from P2P
+    };
+  }
   const formatMMDDYYYY = (d) => {
     if (!(d instanceof Date) || Number.isNaN(d.getTime())) return null;
     const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -232,7 +304,21 @@
     individualFormEl.classList.toggle("hidden", !isIndividual);
     entityFormEl.classList.toggle("hidden", isIndividual);
   }
-
+  function formatWithCommas(value) {
+    const n =
+      typeof value === "number"
+        ? value
+        : Number(String(value).replace(/,/g, ""));
+    if (!Number.isFinite(n)) return "";
+    return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+  }
+  function formatPercentWhole(value) {
+    // accepts: 1.2455 (treated as 1.2455%), "1.2455%", "0.012455" (if you pass it, it will become 0%)
+    const s = String(value ?? "").trim();
+    const num = s.endsWith("%") ? Number(s.slice(0, -1)) : Number(s);
+    if (!Number.isFinite(num)) return "";
+    return `${Math.round(num)}%`;
+  }
   function esc(s) {
     return String(s ?? "")
       .replaceAll("&", "&amp;")
@@ -324,7 +410,7 @@
       let s = `Counterparty ${name || `#${i}`} has been sampled`;
       if (reason) s += ` due to ${reason}`;
       s += `.`;
-      if (addl) s += ` “${addl}”.`;
+      if (addl) s += ` ${addl}.`;
 
       lines.push(s);
     }
@@ -362,22 +448,58 @@
   `.trim();
   }
   function p2psummary() {
+    const desc = valOrNA("p2p_desc");
+    const descSafe = esc(
+      desc ||
+        "[Include a short description about whether the cash activity appears]",
+    );
     const { start, end } = calculatedateRange(rows, "Transaction Date");
+    const p2pval = calculateTotalsAndCountsByType(
+      rows,
+      "Transaction Type",
+      "p2p",
+    );
+    const totalAmount = calculateDebitCreditTotalsAndCounts(rows);
+    const percentage = calculateP2PPercentOfTotals({
+      totalDebit: totalAmount.debitTotal,
+      p2pDebit: p2pval.debitTotal,
+      totalCredit: totalAmount.creditTotal,
+      p2pCredit: p2pval.creditTotal,
+    });
     return `
       <p>
-      Between ${start} - ${end}, the Focal Entity received [# P2P credits] P2P transactions through [list P2P Platform names] totaling [$ total P2P credit amount] ([percentage of total credits by value originating from P2P transactions]% of total credits) (if available: from [#] Counterparties) and conducted [# P2P debit] P2P transactions through [list P2P Platform names] totaling [$ total P2P debit amount] ([percentage of total debits by value originating from P2P transactions]% of total activity) (if available: from [#] Counterparties). [Include a short description about whether the P2P activity appears reasonable for the customer]. 
+      Between ${start} - ${end}, the Focal Entity received ${p2pval.creditCount} P2P transactions through one or more P2P applications such as Zelle, Venmo, Cash App totaling $${formatWithCommas(p2pval.creditTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalCredit)} of total credits and conducted ${p2pval.debitCount} through one or more P2P applications such as Zelle, Venmo, Cash App totaling $${formatWithCommas(p2pval.debitTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalDebit)}% of total debits. ${descSafe}. 
       </p>
 
   `.trim();
   }
   function cashSummary() {
-    return `
-      <p>
-      Between [DATES OF FULL REVIEW PERIOD], the Focal Entity conducted [# cash deposits] cash deposits via [branch, ATM, armored car], at locations in [geographic location of deposits], totaling [$ total cash credit amount] ([percentage of total credits by value originating from cash transactions]% of total credits) and conducted e] cash withdrawals via [branch, ATM, armored car], at locations in [geographic location of deposits], totaling [$ total cash debit amount] ([percentage of total debits by value being withdrawn as cash]% of total debits) [Include a short description about whether the cash activity appears].
-      </p>
+    const desc = valOrNA("cash_desc");
+    const descSafe = esc(
+      desc ||
+        "[Include a short description about whether the cash activity appears]",
+    );
 
+    const { start, end } = calculatedateRange(rows, "Transaction Date");
+    const cashVal = calculateTotalsAndCountsByType(
+      rows,
+      "Transaction Type",
+      "cash",
+    );
+    const totalAmount = calculateDebitCreditTotalsAndCounts(rows);
+    const percentage = calculateP2PPercentOfTotals({
+      totalDebit: totalAmount.debitTotal,
+      p2pDebit: cashVal.debitTotal,
+      totalCredit: totalAmount.creditTotal,
+      p2pCredit: cashVal.creditTotal,
+    });
+    return `
+    <p>
+      Between  ${start} - ${end}, the Focal Entity conducted ${cashVal.creditCount} cash deposits via [branch, ATM, armored car], at multiple locations, totaling $${formatWithCommas(cashVal.creditTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalCredit)} of total credits and conducted ${cashVal.debitCount} cash withdrawals via [branch, ATM, armored car], at multiple locations totaling $${formatWithCommas(cashVal.debitTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalDebit)}% of total debits. ${descSafe}.
+    </p>
   `.trim();
   }
+
   function Conclusion() {
     return `
       
@@ -642,11 +764,13 @@
     </div>
   `.trim();
   }
+
   clearAll();
   wireCounterpartyAddButton();
   wireCustomerStatusToggle();
   wireRfiStatusFields();
   setFocalFormVisibility();
+
   document.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-cmd], [data-action]");
     if (!btn) return;

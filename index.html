@@ -71,11 +71,11 @@
             <label class="label" for="ind_addlInfo"
               >Additional info (details + source)</label
             >
-            <input
+            <textarea
               id="ind_addlInfo"
               type="text"
               placeholder="Additional info (details + source)"
-            />
+            ></textarea>
           </div>
           <div>
             <label class="label" for="ind_customerStatus"
@@ -427,11 +427,53 @@
           </div>
         </div>
       </section>
-      <section class="card" id="counterparty-card">
+      <section class="card" id="">
         <div class="row" style="width: 100%; display: block">
           <div>
             <label class="label">Analyst Comments</label>
             <div class="flex" style="gap: 10px; align-items: center"></div>
+          </div>
+        </div>
+      </section>
+      <section class="card" id="p2p-card">
+        <div class="row" style="width: 100%; display: block">
+          <div>
+            <label class="label">P2P Transaction Analysis:</label>
+            <div class="flex" style="gap: 10px; align-items: center; width: 100%;">
+              <div   style="width: 100%;">
+                <label
+                  class="label"
+                  for="p2p_desc"
+                  style="margin-top: 8px"
+                  >P2P activity Details</label>
+                <textarea
+                style="width: 100%;"
+                  id="p2p_desc"
+                  type="text"
+                  placeholder="Include a short description about whether the P2P activity appears reasonable for the customer"
+                ></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+<section class="card" id="cash-card">
+        <div class="row" style="width: 100%; display: block">
+          <div>
+            <label class="label">P2P Transaction Analysis:</label>
+            <div class="flex" style="gap: 10px; align-items: center; width: 100%;">
+              <div   style="width: 100%;">
+                <label
+                  class="label"
+                  for="cash_desc"
+                  style="margin-top: 8px"
+                  >Cash Transaction Analysis</label>
+                <textarea
+                style="width: 100%;"
+                  id="cash_desc"
+                  type="text"
+                  placeholder="Include a short description about whether the cash activity appears reasonable for the customer"
+                ></textarea>
+            </div>
           </div>
         </div>
       </section>

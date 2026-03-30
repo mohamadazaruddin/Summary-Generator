@@ -333,3 +333,7 @@ textarea {
   font-size: 12px;
   margin-top: 24px;
 }
+.na-highlight {
+  color: #da291c;
+  font-weight: 700;
+}
