@@ -175,10 +175,10 @@
     return {
       debitTotal,
       creditTotal,
-      total: debitTotal + creditTotal,
+      // total: debitTotal + creditTotal,
       debitCount,
       creditCount,
-      totalCount: debitCount + creditCount,
+      // totalCount: debitCount + creditCount,
     };
   }
 
@@ -468,7 +468,7 @@
     });
     return `
       <p>
-      Between ${start} - ${end}, the Focal Entity received ${p2pval.creditCount} P2P transactions through one or more P2P applications such as Zelle, Venmo, Cash App totaling $${formatWithCommas(p2pval.creditTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalCredit)} of total credits and conducted ${p2pval.debitCount} through one or more P2P applications such as Zelle, Venmo, Cash App totaling $${formatWithCommas(p2pval.debitTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalDebit)}% of total debits. ${descSafe}. 
+      Between ${start} - ${end}, the Focal Entity received ${p2pval.creditCount} P2P transactions through one or more P2P applications such as Zelle, Venmo, Cash App totaling $${formatWithCommas(p2pval.creditTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalCredit)} of total credits and conducted ${p2pval.debitCount} through one or more P2P applications such as Zelle, Venmo, Cash App totaling $${formatWithCommas(p2pval.debitTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalDebit)} of total debits. ${descSafe}. 
       </p>
 
   `.trim();
