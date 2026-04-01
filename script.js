@@ -426,24 +426,14 @@
     const name = valOrNA("ind_focalName");
     const occupation = valOrNA("ind_occupation");
     const employer = valOrNA("ind_employer");
+    const caseDecision = valOrNA("caseDecision");
     return `
       
       <p>
-      The Focal Entity, ${name}, is a ${occupation} at ${employer}. The Focal Entity maintains
-        [ACCOUNT TYPES]. The credits on the account reflected [TYPES OF CREDITS, GENERAL DESCRIPTION
-        OF ORIGINATOR(S), AND APPARENT PURPOSE OF THE CREDITS]. Account debits primarily reflect
-        [GENERAL DESCRIPTION OF DEBITS AND THEIR APPARENT PURPOSE]. The activity appears reasonable
-        [MITIGATING REASONS FOR THE ACTIVITY].
+      The Focal Entity, ${name}, is a ${occupation} at ${employer}. ${caseDecision}
       </p>
 
-      <p>
-        During the review period of [REVIEW PERIOD DATE RANGE], review of transactional activity
-        identified that the activity consisted of [GENERAL DESCRIPTION OF ACCOUNT ACTIVITY]. This appears
-        consistent with [APPARENT PURPOSE OF ACTIVITY] (explain why the activity makes sense for the customer).
-        The alerting activity consisted of [DESCRIPTION OF ALERTING ACTIVITY], which appears to be
-        [APPARENT PURPOSE OF ALERTING TRANSACTIONS]. As for [MITIGATING FACTORS], this case is recommended
-        for closure.
-      </p>
+   
  
   `.trim();
   }
