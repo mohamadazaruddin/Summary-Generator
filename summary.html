@@ -5,417 +5,742 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Transactions Summarizer</title>
     <!-- <link rel="stylesheet" href="styles.css" /> -->
-    <style>
+     <style>
       :root {
-        --bg: #0f1216;
-        --card: #151a21;
-        --text: #e9eef6;
-        --muted: #aab4c2;
-        --line: #263042;
-        --primary: #86bc25;
-        --blue: #007cb0;
-        --danger: #da291c;
-      }
+  --bg: #0f1216;
+  --card: #151a21;
+  --text: #e9eef6;
+  --muted: #aab4c2;
+  --line: #263042;
+  --primary: #86bc25;
+  --blue: #007cb0;
+  --danger: #da291c;
+}
 
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        font-family:
-          system-ui,
-          -apple-system,
-          Segoe UI,
-          Roboto,
-          Arial,
-          sans-serif;
-        background: linear-gradient(180deg, #0b0e12, var(--bg));
-        color: var(--text);
-      }
-      .app {
-        max-width: 100%;
-        margin: 28px auto;
-        padding: 0 16px;
-      }
-      .head {
-        margin-bottom: 14px;
-      }
-      h1 {
-        margin: 0 0 6px;
-        font-size: 20px;
-      }
-      .sub {
-        margin: 0;
-        color: var(--muted);
-        font-size: 13px;
-      }
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Arial,
+    sans-serif;
+  background: linear-gradient(180deg, #0b0e12, var(--bg));
+  color: var(--text);
+}
+.app {
+  max-width: 100%;
+  margin: 28px auto;
+  padding: 0 16px;
+}
+.head {
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+}
+h1 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+.sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
 
-      .card {
-        background: var(--card);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 16px;
-        margin: 12px 0;
-      }
-      .label {
-        display: block;
-        font-size: 14px;
-        color: var(--muted);
-        font-weight: 600;
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  margin: 12px 0;
+}
+.label {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
 
-        margin-bottom: 6px;
-        margin-left: 10px;
-      }
-      #summary {
-        color: (var(--text));
-        font-size: 18px;
-        font-weight: 600;
-      }
-      .hint {
-        font-size: 12px;
-        color: var(--muted);
-        margin-top: 6px;
-      }
-      .status {
-        margin-top: 10px;
-        font-size: 12px;
-        color: var(--muted);
-      }
-      .status.ok {
-        color: #cfe8b3;
-      }
-      .status.bad {
-        color: #ffb3ad;
-      }
+  margin-bottom: 6px;
+  margin-left: 10px;
+}
+#summary {
+  color: (var(--text));
+  font-size: 18px;
+  font-weight: 600;
+}
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.status {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.status.ok {
+  color: #cfe8b3;
+}
+.status.bad {
+  color: #ffb3ad;
+}
 
-      .row {
-        display: flex;
-        gap: 12px;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-      }
-      .rowBtns {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        flex-wrap: wrap;
-      }
-      #focal-entity-form input {
-        background-color: #10151c;
-        padding: 8px 12px;
-        border-radius: 6px;
-        border: 1px solid var(--line);
-        color: var(--text);
-      }
-      #focal-entity-form input:focus {
-        background-color: #10151c;
-        padding: 8px 12px;
-        border-radius: 6px;
-        border: 1px solid var(--line);
-        color: var(--text);
-      }
-      /* Beautiful buttons */
-      .btn {
-        appearance: none;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background:
-          radial-gradient(
-            120% 140% at 20% 0%,
-            rgba(255, 255, 255, 0.1),
-            transparent 55%
-          ),
-          linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.06),
-            rgba(255, 255, 255, 0.02)
-          );
-        color: var(--text);
-        padding: 10px 14px;
-        border-radius: 12px;
-        cursor: pointer;
-        font-weight: 750;
-        font-size: 13px;
-        letter-spacing: 0.2px;
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
-        transition:
-          transform 0.12s ease,
-          box-shadow 0.18s ease,
-          border-color 0.18s ease;
-      }
-      .btn:hover:not(:disabled) {
-        border-color: rgba(255, 255, 255, 0.22);
-        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
-        transform: translateY(-1px);
-      }
-      .btn:active:not(:disabled) {
-        transform: translateY(0px);
-      }
-      .btn:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-        box-shadow: none;
-      }
+.row {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.rowBtns {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+input {
+  background-color: #10151c;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  color: var(--text);
+  margin-bottom: 10px;
+}
+input:focus {
+  background-color: #10151c;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+/* Beautiful buttons */
+.btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(
+      120% 140% at 20% 0%,
+      rgba(255, 255, 255, 0.1),
+      transparent 55%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.02)
+    );
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 750;
+  font-size: 13px;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+.btn:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+  transform: translateY(-1px);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0px);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
 
-      .btn.primary {
-        border-color: rgba(134, 188, 37, 0.55);
-        background:
-          radial-gradient(
-            120% 140% at 20% 0%,
-            rgba(255, 255, 255, 0.12),
-            transparent 55%
-          ),
-          linear-gradient(
-            180deg,
-            rgba(134, 188, 37, 0.26),
-            rgba(134, 188, 37, 0.12)
-          );
-      }
-      .btn.primary:hover:not(:disabled) {
-        border-color: rgba(134, 188, 37, 0.85);
-        box-shadow:
-          0 14px 34px rgba(0, 0, 0, 0.34),
-          0 0 0 6px rgba(134, 188, 37, 0.14);
-      }
+.btn.primary {
+  border-color: rgba(134, 188, 37, 0.55);
+  background:
+    radial-gradient(
+      120% 140% at 20% 0%,
+      rgba(255, 255, 255, 0.12),
+      transparent 55%
+    ),
+    linear-gradient(180deg, rgba(134, 188, 37, 0.26), rgba(134, 188, 37, 0.12));
+}
+.btn.primary:hover:not(:disabled) {
+  border-color: rgba(134, 188, 37, 0.85);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.34),
+    0 0 0 6px rgba(134, 188, 37, 0.14);
+}
 
-      /* Nice file button */
-      input[type="file"]::file-selector-button {
-        appearance: none;
-        border: 1px solid rgba(0, 124, 176, 0.65);
-        background:
-          radial-gradient(
-            120% 140% at 20% 0%,
-            rgba(255, 255, 255, 0.12),
-            transparent 55%
-          ),
-          linear-gradient(
-            180deg,
-            rgba(0, 124, 176, 0.28),
-            rgba(0, 124, 176, 0.12)
-          );
-        color: var(--text);
-        padding: 10px 14px;
-        border-radius: 12px;
-        cursor: pointer;
-        font-weight: 750;
-        margin: 10px;
-        transition:
-          transform 0.12s ease,
-          box-shadow 0.18s ease,
-          border-color 0.18s ease;
-      }
-      input[type="file"]::file-selector-button:hover {
-        border-color: rgba(0, 124, 176, 0.95);
-        box-shadow:
-          0 12px 28px rgba(0, 0, 0, 0.3),
-          0 0 0 6px rgba(0, 124, 176, 0.14);
-        transform: translateY(-1px);
-      }
+/* Nice file button */
+input[type="file"]::file-selector-button {
+  appearance: none;
+  border: 1px solid rgba(0, 124, 176, 0.65);
+  background:
+    radial-gradient(
+      120% 140% at 20% 0%,
+      rgba(255, 255, 255, 0.12),
+      transparent 55%
+    ),
+    linear-gradient(180deg, rgba(0, 124, 176, 0.28), rgba(0, 124, 176, 0.12));
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 750;
+  margin: 10px;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+input[type="file"]::file-selector-button:hover {
+  border-color: rgba(0, 124, 176, 0.95);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.3),
+    0 0 0 6px rgba(0, 124, 176, 0.14);
+  transform: translateY(-1px);
+}
 
-      /* Rich text editor */
-      .rte {
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        overflow: hidden;
-        background: #0f141b;
-        margin-top: 10px;
-      }
-      .rteToolbar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: center;
-        padding: 10px;
-        border-bottom: 1px solid var(--line);
-        background: #10151c;
-      }
-      .iconBtn {
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: #0f141b;
-        color: var(--text);
-        padding: 8px 10px;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: 800;
-        font-size: 13px;
-      }
-      .iconBtn:hover {
-        border-color: rgba(255, 255, 255, 0.22);
-      }
-      .iconBtn:active {
-        transform: translateY(1px);
-      }
-      .iconBtn.danger {
-        border-color: rgba(218, 41, 28, 0.55);
-        background: rgba(218, 41, 28, 0.1);
-      }
+/* Rich text editor */
+.rte {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0f141b;
+  margin-top: 10px;
+}
+.rteToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  background: #10151c;
+}
+.iconBtn {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0f141b;
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 13px;
+}
+.iconBtn:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.iconBtn:active {
+  transform: translateY(1px);
+}
+.iconBtn.danger {
+  border-color: rgba(218, 41, 28, 0.55);
+  background: rgba(218, 41, 28, 0.1);
+}
 
-      .sep {
-        width: 1px;
-        height: 26px;
-        background: var(--line);
-        margin: 0 2px;
-      }
+.sep {
+  width: 1px;
+  height: 26px;
+  background: var(--line);
+  margin: 0 2px;
+}
 
-      #analysisEditor {
-        min-height: 100px;
-      }
-      .rteEditor {
-        min-height: 200px;
-        padding: 12px;
-        outline: none;
-        color: var(--text);
-      }
-      .rteEditor.placeholder:empty:before {
-        content: attr(data-placeholder);
-        color: var(--muted);
-      }
-      .flex {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .flex .label {
-        font-size: 14px;
-        color: var(--text);
-      }
-      .flex select {
-        background-color: var(--bg);
-        border-radius: 8px;
-        color: var(--muted);
-        padding: 8px;
-        width: 150px;
-      }
-    </style>
+#analysisEditor {
+  min-height: 100px;
+}
+.rteEditor {
+  min-height: 200px;
+  padding: 12px;
+  outline: none;
+  color: var(--text);
+}
+.rteEditor.placeholder:empty:before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+}
+.flex {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.flex .label {
+  font-size: 14px;
+  color: var(--text);
+}
+.flex select {
+  background-color: var(--bg);
+  border-radius: 8px;
+  color: var(--muted);
+  padding: 8px;
+  width: 150px;
+}
+.hidden {
+  display: none;
+}
+
+::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 1;
+}
+#rfi_status {
+  width: 350px;
+}
+textarea {
+  background-color: var(--bg);
+  border-radius: 8px;
+  color: var(--muted);
+  padding: 8px;
+  min-width: 300px;
+}
+#counterparty_fields {
+  gap: 12px;
+  width: 100%;
+  align-items: start;
+  margin-top: 10px;
+}
+.cpcard {
+  display: flex;
+  gap: 20px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  align-items: center;
+  padding: 16px;
+  margin: 12px 0;
+}
+.cp-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+.cp-card label {
+  display: block;
+  margin-top: 10px;
+}
+.cp-card input {
+  width: 100%;
+}
+#counterparty_add_btn {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0e2330;
+  color: var(--text);
+  padding: 8px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 12px;
+  margin-top: 24px;
+}
+
+
+     </style>
   </head>
   <body>
     <main class="app">
       <header class="head">
         <h1>Summary Generator</h1>
       </header>
-
-      <section class="card">
-        <label class="label">Upload Excel (.xlsx)</label
-        ><input id="file" type="file" accept=".xlsx,.xlsm,.xlsb,.xls" />
-
-        <div id="status" class="status" aria-live="polite"></div>
-      </section>
-      <section class="card" id="focal-entity-form">
-        <div class="row">
-          <div>
-            <label class="label">Focal Entity Detail</label>
-          </div>
+      <section class="card" style="width: fit-content; display: flex">
+        <div>
+          <label class="label">Upload Excel (.xlsx)</label
+          ><input id="file" type="file" accept=".xlsx,.xlsm,.xlsb,.xls" />
+          <div id="status" class="status" aria-live="polite"></div>
         </div>
-        <input id="focalName" type="text" placeholder="Focal entity name" />
-        <input id="city" type="text" placeholder="City" />
-        <input id="state" type="text" placeholder="State" />
-        <input id="occupation" type="text" placeholder="Occupation" />
+        <div class="flex">
+          <label class="label" for="focalType">Focal entity type</label>
+          <select id="focalType" style="width: 300px">
+            <option value="individual" selected>Individual</option>
+            <option value="entity">Entity</option>
+          </select>
+        </div>
       </section>
-      <section class="card" id="summary-options">
+
+      <section class="card" id="focal-individual-form">
         <div class="row">
           <div>
-            <label class="label">Summary Options</label>
+            <label class="label">Focal Entity Detail (Individual)</label>
           </div>
         </div>
         <div class="flex">
-          <label class="label" for="escalationType">Case type</label>
-          <select id="escalationType">
-            <option value="non_escalation" selected>Non escalation</option>
-            <option value="escalation">Escalation</option>
-          </select>
+          <div>
+            <label class="label" for="ind_focalName">Focal entity</label>
+            <input id="ind_focalName" type="text" placeholder="Focal entity" />
+          </div>
+          <div>
+            <label class="label" for="ind_dob">Date of birth</label>
+            <input id="ind_dob" type="date" placeholder="Date of birth" />
+          </div>
+          <div>
+            <label class="label" for="ind_city">City</label>
+            <input id="ind_city" type="text" placeholder="City" />
+          </div>
+          <div>
+            <label class="label" for="ind_state">State</label>
+            <input id="ind_state" type="text" placeholder="State" />
+          </div>
+          <div>
+            <label class="label" for="ind_occupation">Occupation</label>
+            <input id="ind_occupation" type="text" placeholder="Occupation" />
+          </div>
+          <div>
+            <label class="label" for="ind_employer">Employer name</label>
+            <input id="ind_employer" type="text" placeholder="Employer name" />
+          </div>
+          <div>
+            <label class="label" for="ind_relationshipStart"
+              >Relationship start date</label
+            >
+            <input
+              id="ind_relationshipStart"
+              type="date"
+              placeholder="Relationship start date"
+            />
+          </div>
+          <div>
+            <label class="label" for="ind_addlInfo"
+              >Additional info (details + source)</label
+            >
+            <textarea
+              id="ind_addlInfo"
+              type="text"
+              placeholder="Additional info (details + source)"
+            ></textarea>
+          </div>
+          <div>
+            <label class="label" for="ind_customerStatus"
+              >Customer status</label
+            >
+            <select id="ind_customerStatus">
+              <option value="active" selected>Still a TD customer</option>
+              <option value="inactive">No longer a TD customer</option>
+            </select>
+          </div>
+          <div class="row">
+            <div id="ind_inactive_fields">
+              <div>
+                <label class="label" for="ind_endDate"
+                  >No longer customer as of (date)</label
+                >
+                <input
+                  id="ind_endDate"
+                  type="date"
+                  placeholder="No longer customer as of (date)"
+                />
+              </div>
 
-          <label class="label" for="summaryMode">Summary mode</label>
-          <select id="summaryMode">
-            <option value="standard" selected>Standard</option>
-            <option value="simplified">Simplified</option>
-          </select>
+              <div>
+                <label class="label" for="ind_reason"
+                  >Reason for no longer being a customer</label
+                >
+                <input
+                  id="ind_reason"
+                  type="text"
+                  placeholder="Reason for no longer being a customer"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="card hidden" id="focal-entity-form">
+        <div class="row">
+          <div><label class="label">Focal Entity Detail (Entity)</label></div>
+        </div>
+        <div class="flex">
+          <div>
+            <label class="label" for="ent_focalName">Focal entity</label>
+            <input id="ent_focalName" type="text" placeholder="Focal entity" />
+          </div>
+          <div>
+            <label class="label" for="ent_incorpDate"
+              >Date of incorporation</label
+            >
+            <input
+              id="ent_incorpDate"
+              type="date"
+              placeholder="Date of incorporation"
+            />
+          </div>
+          <div>
+            <label class="label" for="ent_city">City</label>
+            <input id="ent_city" type="text" placeholder="City" />
+          </div>
+          <div>
+            <label class="label" for="ent_state">State</label>
+            <input id="ent_state" type="text" placeholder="State" />
+          </div>
+          <div>
+            <label class="label" for="ent_relationshipStart"
+              >Relationship start date</label
+            >
+            <input
+              id="ent_relationshipStart"
+              type="date"
+              placeholder="Relationship start date"
+            />
+          </div>
+          <div>
+            <label class="label" for="ent_natureBusiness"
+              >Nature of business</label
+            >
+            <input
+              id="ent_natureBusiness"
+              type="text"
+              placeholder="Nature of business"
+            />
+          </div>
+          <div>
+            <label class="label" for="ent_naics">NAICS code</label>
+            <input id="ent_naics" type="text" placeholder="NAICS code" />
+          </div>
+          <div>
+            <label class="label" for="ent_addlInfo"
+              >Additional info (details + source)</label
+            >
+            <input
+              id="ent_addlInfo"
+              type="text"
+              placeholder="Additional info (details + source)"
+            />
+          </div>
+          <div>
+            <label class="label" for="ent_relatedParty">Related party</label>
+            <input
+              id="ent_relatedParty"
+              type="text"
+              placeholder="Related party"
+            />
+          </div>
+          <div>
+            <label class="label" for="ent_reason"
+              >Reason for no longer being a customer</label
+            >
+            <input
+              id="ent_reason"
+              type="text"
+              placeholder="Reason for no longer being a customer"
+            />
+          </div>
         </div>
       </section>
       <section class="card">
         <div class="row">
           <div>
-            <label class="label">Analyst Comments</label>
+            <label class="label">RFI Summary</label>
+            <div class="flex">
+              <label class="label" for="rfi_status" style="margin-top: 8px"
+                >RFI status</label
+              >
+              <select id="rfi_status">
+                <option value="no_prior_rfi_flag" selected>
+                  no Prior RFI Flag
+                </option>
+                <option value="prior_rfi_flag_present">
+                  If Prior RFI Flag is present
+                </option>
+                <option value="lookback_submitted_no_response">
+                  If Lookback RFI submitted, but no response received
+                </option>
+                <option value="lookback_submitted_response_received">
+                  If Lookback RFI submitted, and Response Received
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div
+          id="rfi_fields_prior"
+          class="rfi-fields hidden"
+          style="margin-top: 10px"
+        >
+          <div class="flex">
+            <div>
+              <label class="label" for="rfi_count">RFI count</label>
+              <input
+                id="rfi_count"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="e.g., 2"
+              />
+            </div>
+            <div>
+              <label class="label" for="rfi_submitted_date"
+                >RFI submitted date</label
+              >
+              <input id="rfi_submitted_date" type="date" />
+            </div>
+            <div>
+              <label class="label" for="rfi_questions_summary"
+                >Summary of questions</label
+              >
+              <textarea
+                id="rfi_questions_summary"
+                rows="3"
+                placeholder="Summary of questions"
+              ></textarea>
+            </div>
+            <div>
+              <label class="label" for="rfi_response_detail"
+                >RFI response detail</label
+              >
+              <textarea
+                id="rfi_response_detail"
+                rows="3"
+                placeholder="Enter response details"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+        <div
+          id="rfi_fields_lookback_noresp"
+          class="rfi-fields hidden"
+          style="margin-top: 10px"
+        >
+          <div class="flex">
+            <div>
+              <label class="label" for="rfi_lookback_submitted_date"
+                >Date submitted</label
+              >
+              <input id="rfi_lookback_submitted_date" type="date" />
+            </div>
+            <div>
+              <label class="label" for="rfi_lookback_purpose"
+                >Purpose for RFI</label
+              >
+              <textarea
+                id="rfi_lookback_purpose"
+                rows="3"
+                placeholder="Purpose for RFI"
+              ></textarea>
+            </div>
+            <div>
+              <label class="label" for="rfi_todays_date">Today's date</label>
+              <input id="rfi_todays_date" type="date" />
+            </div>
           </div>
         </div>
 
-        <div class="rte">
-          <div class="rteToolbar" role="toolbar" aria-label="Analysis toolbar">
-            <button
-              class="iconBtn"
-              type="button"
-              data-target="analysisEditor"
-              data-cmd="bold"
-            >
-              <b>B</b>
-            </button>
-            <button
-              class="iconBtn"
-              type="button"
-              data-target="analysisEditor"
-              data-cmd="italic"
-            >
-              <i>I</i>
-            </button>
-            <button
-              class="iconBtn"
-              type="button"
-              data-target="analysisEditor"
-              data-cmd="underline"
-            >
-              <u>U</u>
-            </button>
-            <span class="sep"></span>
-            <button
-              class="iconBtn"
-              type="button"
-              data-target="analysisEditor"
-              data-cmd="insertUnorderedList"
-            >
-              • List
-            </button>
-            <button
-              class="iconBtn"
-              type="button"
-              data-target="analysisEditor"
-              data-cmd="insertOrderedList"
-            >
-              1. List
-            </button>
-            <span class="sep"></span>
-            <button
-              class="iconBtn"
-              type="button"
-              data-target="analysisEditor"
-              data-cmd="undo"
-            >
-              Undo
-            </button>
-            <button
-              class="iconBtn"
-              type="button"
-              data-target="analysisEditor"
-              data-cmd="redo"
-            >
-              Redo
-            </button>
-            <span class="sep"></span>
-            <button
-              class="iconBtn danger"
-              type="button"
-              data-target="analysisEditor"
-              data-action="clearFormat"
-            >
-              Clear format
-            </button>
+        <div
+          id="rfi_fields_lookback_resp"
+          class="rfi-fields hidden"
+          style="margin-top: 10px"
+        >
+          <div class="flex">
+            <div>
+              <label class="label" for="rfi_response_summary"
+                >Summary of RFI response</label
+              >
+              <textarea
+                id="rfi_response_summary"
+                rows="3"
+                placeholder="Summarize the response"
+              ></textarea>
+            </div>
           </div>
+        </div>
+      </section>
+      
+      <section class="card" id="counterparty-card">
+        <div class="row" style="width: 100%; display: block">
+          <div>
+            <label class="label">Counterparties</label>
+            <div class="flex" style="gap: 10px; align-items: center">
+              <div>
+                <label
+                  class="label"
+                  for="counterparty_count"
+                  style="margin-top: 8px"
+                  >Number of counterparties</label
+                >
+                <input
+                  id="counterparty_count"
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="e.g., 3"
+                />
+              </div>
 
-          <div
-            id="analysisEditor"
-            class="rteEditor placeholder"
-            contenteditable="true"
-            spellcheck="true"
-            data-placeholder="Write your analysis points here..."
-          ></div>
+              <button id="counterparty_add_btn" type="button">Add</button>
+            </div>
+          </div>
+          <div class="flex" style="width: 100%">
+            <div id="counterparty_fields" style="margin-top: 10px"></div>
+          </div>
+        </div>
+      </section>
+      <section class="card" id="">
+        <div class="row" style="width: 100%; display: block">
+          <div>
+            <!-- <label class="label">Case descision</label> -->
+         <div class="flex" style="gap: 0px; align-items: center; width: 100%;">
+          <label
+                  class="label"
+                  for="caseDecision"
+                  style="margin-top: 8px"
+                  >Case descision</label>
+        <textarea
+          id="caseDecision"
+          name="caseDecision"
+          rows="5"
+          style="width: 100%;"
+          placeholder="Enter case descision..."
+        ></textarea>
+      </div>
+          </div>
+        </div>
+      </section>
+      <section class="card" id="p2p-card">
+        <div class="row" style="width: 100%; display: block">
+          <div>
+            <!-- <label class="label">P2P Transaction Analysis:</label> -->
+            <div class="flex" style="gap: 10px; align-items: center; width: 100%;">
+              <div   style="width: 100%;">
+                <label
+                  class="label"
+                  for="p2p_desc"
+                  style="margin-top: 8px"
+                  >P2P activity reason</label>
+                <textarea
+                style="width: 100%;"
+                  id="p2p_desc"
+                  type="text"
+                  placeholder="Include a short description about whether the P2P activity appears reasonable for the customer"
+                ></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+<section class="card" id="cash-card">
+        <div class="row" style="width: 100%; display: block">
+          <!-- <div> -->
+            <!-- <label class="label">P2P Transaction Analysis:</label> -->
+            <div class="flex" style="gap: 10px; align-items: center; width: 100%;">
+              <div   style="width: 100%;">
+                <label
+                  class="label"
+                  for="cash_desc"
+                  style="margin-top: 8px"
+                  >Cash Transaction reason</label>
+                <textarea
+                style="width: 100%;"
+                  id="cash_desc"
+                  type="text"
+                  placeholder="Include a short description about whether the cash activity appears reasonable for the customer"
+                ></textarea>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -501,350 +826,846 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script>
       (() => {
-        const el = (id) => document.getElementById(id);
+  const el = (id) => document.getElementById(id);
+  const fileEl = el("file");
+  const statusEl = el("status");
+  const btnGenerate = el("btnGenerate");
+  const btnCopy = el("btnCopy");
+  const btnClear = el("btnClear");
+  const summaryEditor = el("summaryEditor");
+  const focalTypeEl = document.getElementById("focalType");
+  const individualFormEl = document.getElementById("focal-individual-form");
+  const entityFormEl = document.getElementById("focal-entity-form");
+  let rows = [];
 
-        const fileEl = el("file");
-        const statusEl = el("status");
+  // function for all the the transaction data points
+  function TransactionDataPoints() {
+    const totalAmount = calculateDebitCreditTotalsAndCounts(rows);
+    const totalAmountp2p = calculateTotalsAndCountsByType(
+      rows,
+      "Transaction Type",
+      "p2p",
+    );
+    const percentage = calculateP2PPercentOfTotals({
+      totalDebit: totalAmount.debitTotal,
+      p2pDebit: totalAmountp2p.debitTotal,
+      totalCredit: totalAmount.creditTotal,
+      p2pCredit: totalAmountp2p.creditTotal,
+    });
+    console.log(percentage, "red");
+  }
 
-        const btnGenerate = el("btnGenerate");
-        const btnCopy = el("btnCopy");
-        const btnClear = el("btnClear");
+  function calculateDebitCreditTotalsAndCounts(
+    rows,
+    {
+      amountHeader = "AMOUNT",
+      directionHeader = "CREDIT / DEBIT",
+      // optional filter (e.g., headerName="TRANSACTION TYPE", type="Sales")
+      filterHeader,
+      filterValue,
+      requireValidAmount = true,
+    } = {},
+  ) {
+    if (!Array.isArray(rows)) throw new TypeError("rows must be an array");
 
-        const analysisEditor = el("analysisEditor");
-        const summaryEditor = el("summaryEditor");
+    const normalize = (v) =>
+      String(v ?? "")
+        .trim()
+        .toLowerCase();
 
-        // NEW: detail inputs
-        const focalNameEl = el("focalName");
-        const cityEl = el("city");
-        const stateEl = el("state");
-        const occupationEl = el("occupation");
-        const escalationTypeEl = el("escalationType");
-        const summaryModeEl = el("summaryMode");
+    const findKey = (rows, targetHeader) => {
+      const target = normalize(targetHeader);
+      const keys = rows.flatMap((r) =>
+        r && typeof r === "object" ? Object.keys(r) : [],
+      );
+      return keys.find((k) => normalize(k) === target) || targetHeader;
+    };
 
-        let rows = [];
-        let fileName = "";
+    const amountKey = findKey(rows, amountHeader);
+    const dirKey = findKey(rows, directionHeader);
+    const filterKey = filterHeader ? findKey(rows, filterHeader) : null;
 
-        function setStatus(msg, kind = "") {
-          statusEl.textContent = msg || "";
-          statusEl.className = "status" + (kind ? ` ${kind}` : "");
-        }
+    const toNumber = (v) => {
+      if (typeof v === "number") return v;
+      if (typeof v !== "string") return NaN;
+      const cleaned = v.replace(/[$,]/g, "").trim();
+      return cleaned ? Number(cleaned) : NaN;
+    };
 
-        function normalize(s) {
-          return String(s ?? "")
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, " ")
-            .replace(/[^a-z0-9 ]/g, "");
-        }
+    const toDir = (v) => {
+      const d = normalize(v);
+      if (d === "debit" || d === "dr") return "debit";
+      if (d === "credit" || d === "cr") return "credit";
+      return null;
+    };
 
-        // NEW: find a sheet named "Transactions" (case/space tolerant)
-        function findSheetByName(wb, wantedName) {
-          const wanted = normalize(wantedName);
-          return (
-            (wb.SheetNames || []).find((n) => normalize(n) === wanted) || ""
-          );
-        }
+    let debitTotal = 0,
+      creditTotal = 0,
+      debitCount = 0,
+      creditCount = 0;
 
-        function findCol(headers, candidates) {
-          const normToOrig = new Map(headers.map((h) => [normalize(h), h]));
-          for (const c of candidates) {
-            const hit = normToOrig.get(normalize(c));
-            if (hit) return hit;
-          }
-          const normHeaders = headers.map((h) => ({ h, n: normalize(h) }));
-          for (const c of candidates) {
-            const cn = normalize(c);
-            const hit = normHeaders.find(
-              (x) => x.n.includes(cn) || cn.includes(x.n),
-            );
-            if (hit) return hit.h;
-          }
-          return "";
-        }
+    for (const row of rows) {
+      if (filterKey && normalize(row?.[filterKey]) !== normalize(filterValue))
+        continue;
 
-        function parseAmount(v) {
-          if (v == null || v === "") return NaN;
-          if (typeof v === "number") return v;
+      const dir = toDir(row?.[dirKey]);
+      if (!dir) continue;
 
-          const cleaned = String(v)
-            .trim()
-            .replace(/[^0-9.,\-()]/g, "");
-          const neg = /^\(.*\)$/.test(cleaned);
-          const unwrapped = cleaned.replace(/[()]/g, "");
+      const amt = toNumber(row?.[amountKey]);
+      if (requireValidAmount && !Number.isFinite(amt)) continue;
 
-          const parts = unwrapped.split(".");
-          let numStr = unwrapped;
-          if (parts.length > 2) {
-            const last = parts.pop();
-            numStr = parts.join("") + "." + last;
-          }
-          numStr = numStr.replace(/,/g, "");
-          const n = Number(numStr);
-          if (!Number.isFinite(n)) return NaN;
-          return neg ? -n : n;
-        }
+      if (dir === "debit") {
+        debitCount += 1;
+        if (Number.isFinite(amt)) debitTotal += amt;
+      } else {
+        creditCount += 1;
+        if (Number.isFinite(amt)) creditTotal += amt;
+      }
+    }
 
-        function parseDate(v) {
-          if (v == null || v === "") return null;
-          if (v instanceof Date && !isNaN(v)) return v;
-          if (typeof v === "number") {
-            const epoch = new Date(Date.UTC(1899, 11, 30));
-            const d = new Date(epoch.getTime() + v * 86400000);
-            return isNaN(d) ? null : d;
-          }
-          const d = new Date(String(v));
-          return isNaN(d) ? null : d;
-        }
+    return {
+      debitTotal,
+      creditTotal,
+      // totalAmount: debitTotal + creditTotal,
+      debitCount,
+      creditCount,
+      // totalCount: debitCount + creditCount,
+    };
+  }
 
-        function fmtMoney(n) {
-          if (!Number.isFinite(n)) return "N/A";
-          const sign = n < 0 ? "-" : "";
-          const abs = Math.abs(n);
-          return `${sign}${abs.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`;
-        }
+  function calculateTotalsAndCountsByType(
+    rows,
+    headerName,
+    type,
+    { requireValidAmountForCount = false } = {},
+  ) {
+    if (!Array.isArray(rows)) throw new TypeError("rows must be an array");
+    if (!headerName || !type) {
+      return {
+        debitTotal: 0,
+        creditTotal: 0,
+        total: 0,
+        debitCount: 0,
+        creditCount: 0,
+        totalCount: 0,
+      };
+    }
 
-        function fmtDate(d) {
-          return d instanceof Date && !isNaN(d)
-            ? d.toISOString().slice(0, 10)
-            : "N/A";
-        }
+    const normalize = (v) =>
+      String(v ?? "")
+        .trim()
+        .toLowerCase();
 
-        // FIXED: escape < and > correctly (prevents HTML injection)
-        function esc(s) {
-          return String(s ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#39;");
-        }
+    const findKey = (rows, targetHeader) => {
+      const target = normalize(targetHeader);
+      const keys = rows.flatMap((r) =>
+        r && typeof r === "object" ? Object.keys(r) : [],
+      );
+      return keys.find((k) => normalize(k) === target) || targetHeader;
+    };
 
-        function sanitizeBasicHtml(html) {
-          const allowed = new Set([
-            "B",
-            "STRONG",
-            "I",
-            "EM",
-            "U",
-            "BR",
-            "DIV",
-            "P",
-            "UL",
-            "OL",
-            "LI",
-            "SPAN",
-          ]);
-          const tpl = document.createElement("template");
-          tpl.innerHTML = String(html || "");
+    const typeKey = findKey(rows, headerName);
+    const amountKey = findKey(rows, "AMOUNT");
+    const creditDebitKey = findKey(rows, "CREDIT / DEBIT");
 
-          const walk = (node) => {
-            const children = Array.from(node.childNodes);
-            for (const ch of children) {
-              if (ch.nodeType === Node.ELEMENT_NODE) {
-                const tag = ch.tagName.toUpperCase();
-                if (!allowed.has(tag)) {
-                  const frag = document.createDocumentFragment();
-                  while (ch.firstChild) frag.appendChild(ch.firstChild);
-                  ch.replaceWith(frag);
-                } else {
-                  for (const attr of Array.from(ch.attributes))
-                    ch.removeAttribute(attr.name);
-                  walk(ch);
-                }
-              } else if (ch.nodeType === Node.COMMENT_NODE) {
-                ch.remove();
-              }
-            }
-          };
+    const toNumber = (v) => {
+      if (typeof v === "number") return v;
+      if (typeof v !== "string") return NaN;
+      const cleaned = v.replace(/[$,]/g, "").trim();
+      return cleaned ? Number(cleaned) : NaN;
+    };
 
-          walk(tpl.content);
-          return tpl.innerHTML;
-        }
+    let debitTotal = 0,
+      creditTotal = 0,
+      debitCount = 0,
+      creditCount = 0;
 
-        function buildSummaryHtml() {
-          if (!rows.length) throw new Error("No transactions loaded.");
+    for (const row of rows) {
+      if (normalize(row?.[typeKey]) !== normalize(type)) continue;
 
-          const focalName = (focalNameEl?.value || "").trim() || "N/A";
-          const city = (cityEl?.value || "").trim() || "N/A";
-          const state = (stateEl?.value || "").trim() || "N/A";
-          const occupation = (occupationEl?.value || "").trim() || "N/A";
-          const escalationType = escalationTypeEl?.value || "non_escalation";
-          const summaryMode = summaryModeEl?.value || "standard";
+      const direction = normalize(row?.[creditDebitKey]);
+      const amount = toNumber(row?.[amountKey]);
+      const hasValidAmount = Number.isFinite(amount);
 
-          const headers = Object.keys(rows[0] || {});
-          const amtCol = findCol(headers, [
-            "amount",
-            "amt",
-            "value",
-            "transaction amount",
-            "debit",
-            "credit",
-          ]);
+      // counts
+      if (!requireValidAmountForCount || hasValidAmount) {
+        if (direction === "debit") debitCount += 1;
+        else if (direction === "credit") creditCount += 1;
+      }
 
-          if (!amtCol) throw new Error('Could not detect an "amount" column.');
+      // totals (only when amount is valid)
+      if (!hasValidAmount) continue;
+      if (direction === "debit") debitTotal += amount;
+      else if (direction === "credit") creditTotal += amount;
+    }
 
-          const amounts = rows
-            .map((r) => parseAmount(r[amtCol]))
-            .filter((n) => Number.isFinite(n));
+    return {
+      debitTotal,
+      creditTotal,
+      // total: debitTotal + creditTotal,
+      debitCount,
+      creditCount,
+      // totalCount: debitCount + creditCount,
+    };
+  }
 
-          const credit = amounts
-            .filter((n) => n > 0)
-            .reduce((a, n) => a + n, 0);
-          const debit = Math.abs(
-            amounts.filter((n) => n < 0).reduce((a, n) => a + n, 0),
-          );
-          const creditText = `$${fmtMoney(credit)}`;
-          const debitText = `$${fmtMoney(debit)}`;
+  function calculateP2PPercentOfTotals({
+    totalDebit = 0,
+    totalCredit = 0,
+    p2pDebit = 0,
+    p2pCredit = 0,
+    decimals = 2,
+  } = {}) {
+    const toNum = (v) => (Number.isFinite(v) ? v : Number(v));
+    const safe = (n) => (Number.isFinite(n) ? n : 0);
 
-          let paragraph = "";
-          if (escalationType === "escalation" && summaryMode === "standard") {
-            paragraph = `Escalation summary: The focal entity is "${focalName}" located in ${city}, ${state}, with occupation "${occupation}". Total credits are ${creditText} and total debits are ${debitText}.`;
-          } else if (
-            escalationType === "escalation" &&
-            summaryMode === "simplified"
-          ) {
-            paragraph = `Escalation: "${focalName}" (${city}, ${state}; "${occupation}") — Credits ${creditText}; Debits ${debitText}.`;
-          } else if (
-            escalationType === "non_escalation" &&
-            summaryMode === "standard"
-          ) {
-            paragraph = `Summary: The focal entity is "${focalName}" located in ${city}, ${state}, with occupation "${occupation}". Total credits are ${creditText} and total debits are ${debitText}.`;
-          } else if (
-            escalationType === "non_escalation" &&
-            summaryMode === "simplified"
-          ) {
-            paragraph = `Non-escalation: "${focalName}" (${city}, ${state}; "${occupation}") — Credits ${creditText}; Debits ${debitText}.`;
-          } else {
-            alert("Please check all the input fields are selected correctly.");
-            paragraph = "";
-          }
+    totalDebit = safe(toNum(totalDebit));
+    totalCredit = safe(toNum(totalCredit));
+    p2pDebit = safe(toNum(p2pDebit));
+    p2pCredit = safe(toNum(p2pCredit));
 
-          return `
+    const pct = (part, whole) =>
+      whole === 0 ? 0 : Number(((part / whole) * 100).toFixed(decimals));
+
+    return {
+      p2pPctOfTotalDebit: pct(p2pDebit, totalDebit), // % of total debit from P2P
+      p2pPctOfTotalCredit: pct(p2pCredit, totalCredit), // % of total credit from P2P
+    };
+  }
+  const formatMMDDYYYY = (d) => {
+    if (!(d instanceof Date) || Number.isNaN(d.getTime())) return null;
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  };
+
+  function calculatedateRange(rows, dateHeaderName) {
+    if (!Array.isArray(rows)) throw new TypeError("rows must be an array");
+    if (!dateHeaderName) return { start: null, end: null, key: null };
+
+    const target = String(dateHeaderName).trim().toLowerCase();
+
+    const keys = rows.flatMap((r) =>
+      r && typeof r === "object" ? Object.keys(r) : [],
+    );
+
+    const key =
+      keys.find((k) => String(k).trim().toLowerCase() === target) ||
+      dateHeaderName;
+
+    const toDate = (v) => {
+      if (v instanceof Date) return Number.isNaN(v.getTime()) ? null : v;
+      if (typeof v === "number") {
+        const d = new Date(v);
+        return Number.isNaN(d.getTime()) ? null : d;
+      }
+      if (typeof v !== "string") return null;
+
+      const s = v.trim();
+      if (!s) return null;
+
+      // Strict MM/DD/YYYY only
+      const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (!m) return null;
+
+      const mm = Number(m[1]);
+      const dd = Number(m[2]);
+      const yyyy = Number(m[3]);
+      if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+
+      const d = new Date(yyyy, mm - 1, dd);
+
+      // Reject rollover dates (e.g., 02/31 -> Mar 2)
+      if (
+        d.getFullYear() !== yyyy ||
+        d.getMonth() !== mm - 1 ||
+        d.getDate() !== dd
+      )
+        return null;
+
+      return d;
+    };
+
+    let start = null;
+    let end = null;
+
+    for (const r of rows) {
+      const d = toDate(r?.[key]);
+      if (!d) continue;
+      if (!start || d < start) start = d;
+      if (!end || d > end) end = d;
+    }
+
+    return { start: formatMMDDYYYY(start), end: formatMMDDYYYY(end), key };
+  }
+  function setStatus(msg, kind = "") {
+    statusEl.textContent = msg || "";
+    statusEl.className = "status" + (kind ? ` ${kind}` : "");
+  }
+  function fmtMoney(n) {
+    if (!Number.isFinite(n)) return "N/A";
+    const sign = n < 0 ? "-" : "";
+    const abs = Math.abs(n);
+    return `${sign}${abs.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
+  function normalize(s) {
+    return String(s ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .replace(/[^a-z0-9 ]/g, "");
+  }
+
+  function findSheetByName(wb, wantedName) {
+    const wanted = normalize(wantedName);
+    return (wb.SheetNames || []).find((n) => normalize(n) === wanted) || "";
+  }
+  function setFocalFormVisibility() {
+    const type = focalTypeEl?.value || "individual";
+    const isIndividual = type === "individual";
+
+    individualFormEl.classList.toggle("hidden", !isIndividual);
+    entityFormEl.classList.toggle("hidden", isIndividual);
+  }
+  function formatWithCommas(value) {
+    const n =
+      typeof value === "number"
+        ? value
+        : Number(String(value).replace(/,/g, ""));
+    if (!Number.isFinite(n)) return "";
+    return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+  }
+  function formatPercentWhole(value) {
+    // accepts: 1.2455 (treated as 1.2455%), "1.2455%", "0.012455" (if you pass it, it will become 0%)
+    const s = String(value ?? "").trim();
+    const num = s.endsWith("%") ? Number(s.slice(0, -1)) : Number(s);
+    if (!Number.isFinite(num)) return "";
+    return `${Math.round(num)}%`;
+  }
+  function esc(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function buildRfiSummary(focalEntityName) {
+    const fe = (focalEntityName || "").trim() || "N/A";
+
+    const status =
+      document.getElementById("rfi_status")?.value || "no_prior_rfi_flag";
+    const valOrNA = (id) =>
+      (document.getElementById(id)?.value || "").trim() || "N/A";
+
+    if (status === "no_prior_rfi_flag") {
+      return `There are no prior RFIs identified for ${fe}.`;
+    }
+
+    if (status === "prior_rfi_flag_present") {
+      const count = valOrNA("rfi_count");
+      const submitted = valOrNA("rfi_submitted_date");
+      const questions = valOrNA("rfi_questions_summary");
+      const responseDate = valOrNA("rfi_questions_received_date");
+      const responseDetails = valOrNA("rfi_response_detail");
+
+      return `A total of ${count} prior RFIs were identified for ${fe}. An RFI was submitted by TD on ${submitted} to inquire about ${questions}. A response was received on ${responseDate}. The customer/branch stated: ${responseDetails}.`;
+    }
+
+    if (status === "lookback_submitted_no_response") {
+      const submitted = valOrNA("rfi_lookback_submitted_date");
+      const purpose = valOrNA("rfi_lookback_purpose");
+      const today = valOrNA("rfi_todays_date");
+
+      return `During the Lookback an RFI was submitted to TD on ${submitted} regarding ${purpose}. As of ${today}, no response has been received.`;
+    }
+
+    if (status === "lookback_submitted_response_received") {
+      const submitted = valOrNA("rfi_lookback_resp_submitted_date");
+      const purpose = valOrNA("rfi_lookback_resp_purpose");
+      const received = valOrNA("rfi_lookback_r  esp_received_date");
+      const summary = valOrNA("rfi_response_summary");
+
+      return `During the Lookback, an RFI was submitted to TD on ${submitted} regarding ${purpose}. A response was received on ${received}, stating: ${summary}.`;
+    }
+
+    return "";
+  }
+  function wireCustomerStatusToggle() {
+    const statusEl = document.getElementById("ind_customerStatus");
+    const inactiveWrap = document.getElementById("ind_inactive_fields");
+    const endDateEl = document.getElementById("ind_endDate");
+    const reasonEl = document.getElementById("ind_reason");
+    if (!statusEl || !inactiveWrap) return;
+
+    const apply = () => {
+      const isInactive = statusEl.value === "inactive";
+      inactiveWrap.style.display = isInactive ? "" : "none";
+
+      // Optional: clear values when hidden
+      if (!isInactive) {
+        if (endDateEl) endDateEl.value = "";
+        if (reasonEl) reasonEl.value = "";
+      }
+    };
+
+    statusEl.addEventListener("change", apply);
+    apply(); // run once on load
+  }
+  function buildCounterpartySummary() {
+    const count =
+      Number.parseInt(
+        document.getElementById("counterparty_count")?.value,
+        10,
+      ) || 0;
+
+    const lines = [];
+
+    for (let i = 1; i <= count; i++) {
+      const name = document.getElementById(`cp_${i}_name`)?.value?.trim() || "";
+      const reason =
+        document.getElementById(`cp_${i}_reason`)?.value?.trim() || "";
+      const addl = document.getElementById(`cp_${i}_addl`)?.value?.trim() || "";
+
+      if (!name && !reason && !addl) continue;
+
+      let s = `Counterparty ${name || `#${i}`} has been sampled`;
+      if (reason) s += ` due to ${reason}`;
+      s += `.`;
+      if (addl) s += ` ${addl}.`;
+
+      lines.push(s);
+    }
+
+    if (lines.length === 0) {
+      return ["No Counterparty is selected for sampling."];
+    }
+
+    return lines;
+  }
+
+  function buildAnalystDisposition() {
+    const name = valOrNA("ind_focalName");
+    const occupation = valOrNA("ind_occupation");
+    const employer = valOrNA("ind_employer");
+    const caseDecision = valOrNA("caseDecision");
+    return `
+      
+      <p>
+      The Focal Entity, ${name}, is a ${occupation} at ${employer}. ${caseDecision}
+      </p>
+
+   
+ 
+  `.trim();
+  }
+  function p2psummary() {
+    const desc = valOrNA("p2p_desc");
+    const descSafe = esc(
+      desc ||
+        "[Include a short description about whether the cash activity appears]",
+    );
+    const { start, end } = calculatedateRange(rows, "Transaction Date");
+    const p2pval = calculateTotalsAndCountsByType(
+      rows,
+      "Transaction Type",
+      "p2p",
+    );
+    const totalAmount = calculateDebitCreditTotalsAndCounts(rows);
+    const percentage = calculateP2PPercentOfTotals({
+      totalDebit: totalAmount.debitTotal,
+      p2pDebit: p2pval.debitTotal,
+      totalCredit: totalAmount.creditTotal,
+      p2pCredit: p2pval.creditTotal,
+    });
+    return `
+      <p>
+      Between ${start} - ${end}, the Focal Entity received ${p2pval.creditCount} P2P transactions through one or more P2P applications such as Zelle, Venmo, Cash App totaling $${formatWithCommas(p2pval.creditTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalCredit)} of total credits and conducted ${p2pval.debitCount} through one or more P2P applications such as Zelle, Venmo, Cash App totaling $${formatWithCommas(p2pval.debitTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalDebit)} of total debits. ${descSafe}. 
+      </p>
+
+  `.trim();
+  }
+  function cashSummary() {
+    const desc = valOrNA("cash_desc");
+    const descSafe = esc(
+      desc ||
+        "[Include a short description about whether the cash activity appears]",
+    );
+
+    const { start, end } = calculatedateRange(rows, "Transaction Date");
+    const cashVal = calculateTotalsAndCountsByType(
+      rows,
+      "Transaction Type",
+      "cash",
+    );
+    const totalAmount = calculateDebitCreditTotalsAndCounts(rows);
+    const percentage = calculateP2PPercentOfTotals({
+      totalDebit: totalAmount.debitTotal,
+      p2pDebit: cashVal.debitTotal,
+      totalCredit: totalAmount.creditTotal,
+      p2pCredit: cashVal.creditTotal,
+    });
+    return `
+    <p>
+      Between  ${start} - ${end}, the Focal Entity conducted ${cashVal.creditCount} cash deposits via [branch, ATM, armored car], at multiple locations, totaling $${formatWithCommas(cashVal.creditTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalCredit)} of total credits and conducted ${cashVal.debitCount} cash withdrawals via [branch, ATM, armored car], at multiple locations totaling $${formatWithCommas(cashVal.debitTotal)} i.e ${formatPercentWhole(percentage.p2pPctOfTotalDebit)}% of total debits. ${descSafe}.
+    </p>
+  `.trim();
+  }
+
+  function Conclusion() {
+    return `
+      
+      <p>
+      The review of transactional activity identified no suspicious patterns and therefore this case is recommended for closure.
+      </p>
+
+  `.trim();
+  }
+
+  function wireRfiStatusFields() {
+    const statusEl = document.getElementById("rfi_status");
+    const priorEl = document.getElementById("rfi_fields_prior");
+    const noRespEl = document.getElementById("rfi_fields_lookback_noresp");
+    const respEl = document.getElementById("rfi_fields_lookback_resp");
+    const todaysEl = document.getElementById("rfi_todays_date");
+
+    if (!statusEl || !priorEl || !noRespEl || !respEl) return;
+
+    const setTodayIfEmpty = () => {
+      if (!todaysEl) return;
+      if (!todaysEl.value)
+        todaysEl.value = new Date().toISOString().slice(0, 10);
+    };
+
+    const sync = () => {
+      const v = statusEl.value;
+
+      priorEl.classList.toggle("hidden", v !== "prior_rfi_flag_present");
+      noRespEl.classList.toggle(
+        "hidden",
+        v !== "lookback_submitted_no_response",
+      );
+      respEl.classList.toggle(
+        "hidden",
+        v !== "lookback_submitted_response_received",
+      );
+
+      if (v === "lookback_submitted_no_response") setTodayIfEmpty();
+    };
+
+    statusEl.addEventListener("change", sync);
+    sync();
+  }
+  function wireCounterpartyAddButton() {
+    const countEl = document.getElementById("counterparty_count");
+    const btnEl = document.getElementById("counterparty_add_btn");
+    const wrapEl = document.getElementById("counterparty_fields");
+    if (!countEl || !btnEl || !wrapEl) return;
+
+    const build = () => {
+      wrapEl.innerHTML = "";
+
+      const count = Math.max(
+        0,
+        Math.min(100, Number.parseInt(countEl.value, 10) || 0),
+      ); // cap at 100
+      for (let i = 1; i <= count; i++) {
+        const section = document.createElement("div");
+        section.className = "cpcard";
+        section.style.marginTop = "10px";
+        section.style.padding = "10px";
+
+        section.innerHTML = `
+        <div class="row"><div><label class="label"> ${i}</label></div></div>
+
+        <label class="label" for="cp_${i}_name">Counterparty name</label>
+        <input id="cp_${i}_name" type="text" placeholder="Counterparty name" />
+
+        <label class="label" for="cp_${i}_reason">Reason for sampled</label>
+        <textarea id="cp_${i}_reason" type="text" placeholder="Reason for sampled"></textarea>
+
+        <label class="label" for="cp_${i}_addl">Additional information</label>
+        <textarea id="cp_${i}_addl"  placeholder="Additional information"></textarea>
+      `;
+        wrapEl.appendChild(section);
+      }
+    };
+
+    btnEl.addEventListener("click", build);
+
+    // Optional: press Enter in the number input to trigger Add
+    countEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") build();
+    });
+  }
+
+  async function copySummary() {
+    const html = summaryEditor.innerHTML;
+    const text = summaryEditor.innerText;
+    if (!text.trim()) return;
+
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/html": new Blob([html], { type: "text/html" }),
+            "text/plain": new Blob([text], { type: "text/plain" }),
+          }),
+        ]);
+      } else {
+        await navigator.clipboard.writeText(text);
+      }
+      setStatus("Copied.", "ok");
+    } catch {
+      setStatus("Copy blocked—select and copy manually.", "bad");
+    }
+  }
+  function buildIndividualFocalSummary({ valOrNA, valTrim }) {
+    const name = valOrNA("ind_focalName");
+    const dobRaw = valTrim("ind_dob");
+    const yob =
+      dobRaw && !Number.isNaN(new Date(dobRaw).getTime())
+        ? String(new Date(dobRaw).getFullYear())
+        : "N/A";
+
+    const city = valOrNA("ind_city");
+    const state = valOrNA("ind_state");
+    const occupation = valOrNA("ind_occupation");
+    const employer = valOrNA("ind_employer");
+    const relStart = valOrNA("ind_relationshipStart");
+
+    const addlInfo = valTrim("ind_addlInfo");
+    const addlInfoClause = addlInfo ? ` ${addlInfo}` : "";
+
+    const customerStatusEl = document.getElementById("ind_customerStatus");
+    const endDateRaw = valTrim("ind_endDate");
+    const reasonRaw = valTrim("ind_reason");
+
+    const customerStatus =
+      (customerStatusEl && customerStatusEl.value) ||
+      (endDateRaw || reasonRaw ? "inactive" : "active");
+
+    let statusSentence = "";
+    if (customerStatus === "inactive") {
+      const endDate = valOrNA("ind_endDate");
+      const reason = valOrNA("ind_reason");
+
+      if (endDate === "N/A" || reason === "N/A") {
+        alert('Please fill "No longer customer as of" date and reason.');
+      }
+      statusSentence = `${name} is no longer a TD customer as of ${endDate} because ${reason}.`;
+    } else {
+      statusSentence = `${name}'s accounts remain active.`;
+    }
+
+    return (
+      ` ${name}, born in ${yob}, is located in ${city}, ${state} and has been a TD Bank customer since ${relStart}. ` +
+      `${name} is a ${occupation} for ${employer}, per internal records${addlInfoClause}. ` +
+      `${statusSentence} `
+    );
+  }
+  function buildEntityFocalSummary({ valOrNA, valTrim }) {
+    const name = valOrNA("ent_focalName");
+    const incorp = valOrNA("ent_incorpDate");
+    const city = valOrNA("ent_city");
+    const state = valOrNA("ent_state");
+    const relStart = valOrNA("ent_relationshipStart");
+    const nature = valOrNA("ent_natureBusiness");
+    const naics = valOrNA("ent_naics");
+    const relatedParty = valOrNA("ent_relatedParty");
+
+    const addlInfo = valTrim("ent_addlInfo");
+    const addlInfoClause = addlInfo
+      ? ` Additional information: ${addlInfo}.`
+      : "";
+    const relatedpartypercentage = "input to add";
+    const customerStatusEl = document.getElementById("ent_customerStatus");
+    const endDateRaw = valTrim("ent_endDate");
+    const reasonRaw = valTrim("ent_reason");
+
+    const customerStatus =
+      (customerStatusEl && customerStatusEl.value) ||
+      (endDateRaw || reasonRaw ? "inactive" : "active");
+
+    let statusSentence = "";
+    if (customerStatus === "inactive") {
+      const endDate = valOrNA("ent_endDate");
+      const reason = valOrNA("ent_reason");
+
+      if (endDate === "N/A" || reason === "N/A") {
+        alert('Please fill "No longer customer as of" date and reason.');
+      }
+      statusSentence = `${name} is no longer a TD customer as of ${endDate} because ${reason}.`;
+    } else {
+      statusSentence = `${name}'s accounts remain active.`;
+    }
+
+    return `${name}, incorporated on ${incorp}, is located in ${city}, ${state} and has been a TD Bank customer since ${relStart}. 
+     ${name}'s nature of business is ${nature} (NAICS: ${naics}), per internal records
+       ${addlInfoClause}. ${relatedParty} is Listed as the beneficial owner ${relatedpartypercentage} ${statusSentence} `;
+  }
+  function clearAll() {
+    rows = [];
+    fileName = "";
+    fileEl.value = "";
+
+    summaryEditor.innerHTML = "";
+
+    btnGenerate.disabled = true;
+    btnCopy.disabled = true;
+    btnClear.disabled = true;
+
+    setStatus("", "");
+  }
+
+  const valOrNA = (id) =>
+    (document.getElementById(id)?.value || "").trim() || "N/A";
+  const valTrim = (id) => (document.getElementById(id)?.value || "").trim();
+  // Main Summary
+  function buildSummaryHtml() {
+    if (!rows.length) throw new Error("No transactions loaded.");
+
+    const focalType =
+      document.getElementById("focalType")?.value || "individual";
+
+    let focalentitysummary = "";
+    if (focalType === "individual") {
+      focalentitysummary = buildIndividualFocalSummary({
+        valOrNA,
+        valTrim,
+      });
+    } else if (focalType === "entity") {
+      focalentitysummary = buildEntityFocalSummary({
+        valOrNA,
+        valTrim,
+      });
+    } else {
+      alert("Please check all the input fields are selected correctly.");
+      focalentitysummary = "";
+    }
+
+    // If you have different name ids by type, pick accordingly:
+    const name =
+      focalType === "entity"
+        ? valOrNA("ent_focalName")
+        : valOrNA("ind_focalName");
+
+    const Rfisummary = buildRfiSummary(name);
+    const counterpartyLines = buildCounterpartySummary();
+    const analystsummary = buildAnalystDisposition();
+    const summaryConclusion = Conclusion();
+    const ptopsummarydisposition = p2psummary();
+    const cashSummarydisposition = cashSummary();
+    return `
     <div>
-      <p>${esc(paragraph)}</p>
+    <Strong>Tranche Analysis</Strong>
+    <p>${esc(focalentitysummary)}</p>
+    <Strong>RFI</Strong>
+    <p>${esc(Rfisummary)}</p>
+    <Strong>Counterparty additional info:</Strong>
+    ${counterpartyLines.map((l) => `<p>${esc(l)}</p>`).join("")}
+    <Strong>Case Decision</Strong>
+    <p>${analystsummary}</p>
+    <Strong>P2P Transaction Analysis</Strong>
+    <p>${ptopsummarydisposition}</p>
+    <Strong>Cash Transaction Analysis</Strong>
+    <p>${cashSummarydisposition}</p>
+    <Strong>Conclusion</Strong> 
+      <p>${summaryConclusion}</p>
+     
     </div>
   `.trim();
-        }
+  }
 
-        async function copySummary() {
-          const html = summaryEditor.innerHTML;
-          const text = summaryEditor.innerText;
-          if (!text.trim()) return;
+  clearAll();
+  wireCounterpartyAddButton();
+  wireCustomerStatusToggle();
+  wireRfiStatusFields();
+  setFocalFormVisibility();
 
-          try {
-            if (navigator.clipboard && window.ClipboardItem) {
-              await navigator.clipboard.write([
-                new ClipboardItem({
-                  "text/html": new Blob([html], { type: "text/html" }),
-                  "text/plain": new Blob([text], { type: "text/plain" }),
-                }),
-              ]);
-            } else {
-              await navigator.clipboard.writeText(text);
-            }
-            setStatus("Copied.", "ok");
-          } catch {
-            setStatus("Copy blocked—select and copy manually.", "bad");
-          }
-        }
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-cmd], [data-action]");
+    if (!btn) return;
 
-        function clearAll() {
-          rows = [];
-          fileName = "";
-          fileEl.value = "";
+    const targetId = btn.getAttribute("data-target");
+    const target = targetId ? document.getElementById(targetId) : null;
+    if (!target) return;
 
-          analysisEditor.innerHTML = "";
-          summaryEditor.innerHTML = "";
+    target.focus();
 
-          btnGenerate.disabled = true;
-          btnCopy.disabled = true;
-          btnClear.disabled = true;
+    const cmd = btn.getAttribute("data-cmd");
+    const action = btn.getAttribute("data-action");
 
-          setStatus("", "");
-        }
+    if (cmd) document.execCommand(cmd, false, null);
+    if (action === "clearFormat") {
+      document.execCommand("removeFormat", false, null);
+      document.execCommand("unlink", false, null);
+    }
+  });
 
-        document.addEventListener("click", (e) => {
-          const btn = e.target.closest("[data-cmd], [data-action]");
-          if (!btn) return;
+  summaryEditor.addEventListener("input", () => {
+    btnCopy.disabled = !summaryEditor.textContent.trim();
+  });
 
-          const targetId = btn.getAttribute("data-target");
-          const target = targetId ? document.getElementById(targetId) : null;
-          if (!target) return;
+  fileEl.addEventListener("change", async () => {
+    setStatus("", "");
+    const f = fileEl.files?.[0];
+    if (!f) return;
 
-          target.focus();
+    try {
+      if (!window.XLSX)
+        throw new Error("Missing XLSX library (xlsx.full.min.js).");
 
-          const cmd = btn.getAttribute("data-cmd");
-          const action = btn.getAttribute("data-action");
+      fileName = f.name;
+      const buf = await f.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array", cellDates: true });
 
-          if (cmd) document.execCommand(cmd, false, null);
-          if (action === "clearFormat") {
-            document.execCommand("removeFormat", false, null);
-            document.execCommand("unlink", false, null);
-          }
-        });
+      const sheetName = findSheetByName(wb, "Transactions");
+      if (!sheetName) {
+        const available = (wb.SheetNames || []).join(", ") || "(none)";
+        throw new Error(
+          `Sheet "Transactions" not found. Available: ${available}`,
+        );
+      }
 
-        summaryEditor.addEventListener("input", () => {
-          btnCopy.disabled = !summaryEditor.textContent.trim();
-        });
+      const ws = wb.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+      if (!json.length)
+        throw new Error('No rows found in "Transactions" sheet.');
 
-        // UPDATED: load the "Transactions" sheet specifically
-        fileEl.addEventListener("change", async () => {
-          setStatus("", "");
-          const f = fileEl.files?.[0];
-          if (!f) return;
+      rows = json;
+      TransactionDataPoints(rows);
+      btnGenerate.disabled = false;
+      btnClear.disabled = false;
 
-          try {
-            if (!window.XLSX)
-              throw new Error("Missing XLSX library (xlsx.full.min.js).");
+      setStatus(`Loaded: ${f.name} (Sheet: ${sheetName})`, "ok");
+    } catch (err) {
+      clearAll();
+      setStatus(err?.message || "Failed to load file.", "bad");
+    }
+  });
 
-            fileName = f.name;
-            const buf = await f.arrayBuffer();
-            const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  btnGenerate.addEventListener("click", () => {
+    try {
+      const html = buildSummaryHtml();
+      summaryEditor.innerHTML = html;
+      btnCopy.disabled = !summaryEditor.textContent.trim();
+      setStatus("Generated. Edit the summary as needed.", "ok");
+    } catch (err) {
+      setStatus(err?.message || "Failed to generate summary.", "bad");
+    }
+  });
+  focalTypeEl?.addEventListener("change", setFocalFormVisibility);
 
-            const sheetName = findSheetByName(wb, "Transactions");
-            if (!sheetName) {
-              const available = (wb.SheetNames || []).join(", ") || "(none)";
-              throw new Error(
-                `Sheet "Transactions" not found. Available: ${available}`,
-              );
-            }
+  btnCopy.addEventListener("click", copySummary);
+  btnClear.addEventListener("click", clearAll);
+})();
 
-            const ws = wb.Sheets[sheetName];
-            const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
-            if (!json.length)
-              throw new Error('No rows found in "Transactions" sheet.');
-
-            rows = json;
-
-            btnGenerate.disabled = false;
-            btnClear.disabled = false;
-
-            setStatus(`Loaded: ${f.name} (Sheet: ${sheetName})`, "ok");
-          } catch (err) {
-            clearAll();
-            setStatus(err?.message || "Failed to load file.", "bad");
-          }
-        });
-
-        btnGenerate.addEventListener("click", () => {
-          try {
-            const html = buildSummaryHtml();
-            summaryEditor.innerHTML = html;
-            btnCopy.disabled = !summaryEditor.textContent.trim();
-            setStatus("Generated. Edit the summary as needed.", "ok");
-          } catch (err) {
-            setStatus(err?.message || "Failed to generate summary.", "bad");
-          }
-        });
-
-        btnCopy.addEventListener("click", copySummary);
-        btnClear.addEventListener("click", clearAll);
-
-        clearAll();
-      })();
     </script>
   </body>
 </html>
